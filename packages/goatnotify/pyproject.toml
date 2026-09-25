@@ -1,0 +1,44 @@
+[project]
+name = "goatnotify"
+version = "0.1.0" # x-release-please-version
+description = "A modern, type-safe, framework-agnostic notification system for Python."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Louis Midson LAJEANTY", email = "midsonlajeanty@proton.me" }]
+requires-python = ">=3.14"
+keywords = ["notifications", "email", "smtp", "webhooks", "asyncio", "typed"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+dependencies = [
+    "goatnotify-core==0.1.0", # x-release-please-version
+]
+
+[project.optional-dependencies]
+jinja = ["goatnotify-jinja==0.1.0"] # x-release-please-version
+django = ["goatnotify-django==0.1.0"] # x-release-please-version
+fastapi = ["goatnotify-fastapi==0.1.0"] # x-release-please-version
+
+[project.urls]
+Homepage = "https://github.com/goatlabshq/goatnotify"
+Documentation = "https://goatlabshq.github.io/goatnotify/"
+Issues = "https://github.com/goatlabshq/goatnotify/issues"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "goatnotify"
+
+[tool.uv.sources]
+goatnotify-core = { workspace = true }
+goatnotify-jinja = { workspace = true }
+goatnotify-django = { workspace = true }
+goatnotify-fastapi = { workspace = true }

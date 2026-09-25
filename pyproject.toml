@@ -1,0 +1,85 @@
+[project]
+name = "goatnotify-workspace"
+version = "0.1.0"
+description = "Development workspace for the GoatNotify packages."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Louis Midson LAJEANTY", email = "midsonlajeanty@proton.me" }]
+requires-python = ">=3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "goatnotify",
+    "goatnotify-core",
+    "goatnotify-jinja",
+    "goatnotify-django",
+    "goatnotify-fastapi",
+    "django-stubs>=6.0",
+    "httpx>=0.28",
+    "lefthook>=1.11",
+    "pyright[nodejs]>=1.1.405",
+    "pytest>=8.4",
+    "pytest-asyncio>=1.2",
+    "ruff>=0.13",
+    "twine>=6.2",
+]
+docs = ["mkdocs-material>=9.6"]
+
+[tool.uv]
+package = false
+default-groups = ["dev"]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+goatnotify = { workspace = true }
+goatnotify-core = { workspace = true }
+goatnotify-jinja = { workspace = true }
+goatnotify-django = { workspace = true }
+goatnotify-fastapi = { workspace = true }
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = [".typecheck", "tests/typing/fixtures", "docs/superpowers"]
+
+[tool.ruff.lint]
+select = [
+    "A", "ARG", "B", "C4", "DTZ", "E", "F", "FA", "FBT", "I", "ISC", "N", "PGH", "PIE",
+    "PL", "PT", "PTH", "PYI", "RET", "RUF", "S", "SIM", "T20", "TC", "TID", "UP", "W",
+]
+# FastAPI and Django resolve annotations at runtime, so typing-only imports stay real imports.
+ignore = ["PLR0913", "PLR2004", "TC001", "TC002", "TC003"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106", "PLC0415", "FBT003", "ARG001", "ARG002"]
+"**/migrations/**" = ["RUF012", "E501"]
+"scripts/**" = ["S101", "T201"]
+"examples/**" = ["T201"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["goatnotify"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
+venvPath = "."
+venv = ".venv"
+extraPaths = [".typecheck", "packages/goatnotify-core/tests", "packages/goatnotify-django/tests"]
+include = ["packages", "tests", "scripts", "examples"]
+exclude = ["**/__pycache__", "tests/typing/fixtures", "**/.venv", "**/migrations"]
+reportMissingModuleSource = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib", "-ra", "--strict-markers", "--strict-config"]
+testpaths = ["packages", "tests"]
+pythonpath = ["packages/goatnotify-core/tests", "packages/goatnotify-django/tests"]
+filterwarnings = ["error"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
