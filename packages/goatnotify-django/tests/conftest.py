@@ -48,7 +48,9 @@ def clean_state() -> Iterator[None]:
     from goatnotify_testapp.models import Member
 
     from goatnotify.django.models import NotificationRecord
+    from goatnotify.django.notifier import get_notifier
 
+    get_notifier.cache_clear()
     mail.outbox = []
     yield
     NotificationRecord.objects.all().delete()
