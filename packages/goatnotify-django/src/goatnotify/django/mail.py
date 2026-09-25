@@ -1,0 +1,52 @@
+"""EmailTransport sending through the configured Django email backend."""
+
+import smtplib
+from email.utils import make_msgid
+
+from asgiref.sync import sync_to_async
+
+from django.core.mail import EmailMultiAlternatives
+from django.core.mail.handler import DEFAULT_MAILER_ALIAS
+from goatnotify.core.errors import PermanentError
+from goatnotify.core.mail.message import Address, EmailMessage
+from goatnotify.core.mail.smtp import classify_smtp_error
+
+
+def _formatted(addresses: tuple[Address, ...]) -> list[str]:
+    return [str(address) for address in addresses]
+
+
+class DjangoEmailTransport:
+    def __init__(self, *, mailer: str = DEFAULT_MAILER_ALIAS) -> None:
+        self._mailer = mailer
+
+    async def send(self, message: EmailMessage) -> str | None:
+        return await sync_to_async(self._send)(message)
+
+    def _send(self, message: EmailMessage) -> str:
+        message_id = message.headers.get("Message-ID") or make_msgid(
+            domain=message.sender.email.rpartition("@")[2]
+        )
+        email = EmailMultiAlternatives(
+            subject=message.subject,
+            body=message.text if message.text is not None else message.html or "",
+            from_email=str(message.sender),
+            to=_formatted(message.to),
+            cc=_formatted(message.cc),
+            bcc=_formatted(message.bcc),
+            reply_to=_formatted(message.reply_to),
+            headers={**message.headers, "Message-ID": message_id},
+        )
+        if message.text is None:
+            email.content_subtype = "html"
+        elif message.html is not None:
+            email.attach_alternative(message.html, "text/html")
+        for attachment in message.attachments:
+            email.attach(attachment.filename, attachment.content, attachment.mimetype)
+        try:
+            sent = email.send(using=self._mailer)
+        except (smtplib.SMTPException, OSError) as error:
+            raise classify_smtp_error(error) from error
+        if sent == 0:
+            raise PermanentError("The Django email backend accepted no message")
+        return message_id
