@@ -11,6 +11,7 @@ from goatnotify.core.channel import Channel
 from goatnotify.core.errors import ConfigurationError, RetryableError, SkipDelivery
 from goatnotify.core.events import Event, Hook
 from goatnotify.core.notification import Message, Notifiable, Notification
+from goatnotify.core.queue import NotificationJob, Queue
 from goatnotify.core.results import DeliveryResult, DeliveryStatus, NotificationResult
 from goatnotify.core.retry import RetryPolicy
 
@@ -34,6 +35,7 @@ class Notifier:
         *,
         retry: RetryPolicy | None = None,
         hooks: Iterable[Hook] = (),
+        queue: Queue | None = None,
         sleep: Sleep = asyncio.sleep,
     ) -> None:
         self._routes: dict[type[Message], Channel[Any]] = {}
@@ -47,6 +49,7 @@ class Notifier:
             self._routes[channel.message_type] = channel
         self._retry = retry or RetryPolicy()
         self._hooks = tuple(hooks)
+        self._queue = queue
         self._sleep = sleep
 
     async def notify[R: Notifiable](
@@ -77,6 +80,15 @@ class Notifier:
         if raise_on_failure:
             result.raise_for_failures()
         return result
+
+    @property
+    def queue(self) -> Queue | None:
+        return self._queue
+
+    async def enqueue[R: Notifiable](self, notifiable: R, notification: Notification[R]) -> None:
+        if self._queue is None:
+            raise ConfigurationError("No queue configured: pass queue= to Notifier")
+        await self._queue.enqueue(NotificationJob(self, notifiable, notification))
 
     def notify_sync[R: Notifiable](
         self, notifiable: R, notification: Notification[R], *, raise_on_failure: bool = True
