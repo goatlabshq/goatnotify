@@ -1,5 +1,10 @@
 """Exception hierarchy shared by every GoatNotify component."""
 
+from typing import TYPE_CHECKING, Self
+
+if TYPE_CHECKING:
+    from goatnotify.core.results import NotificationResult
+
 
 class NotificationError(Exception):
     """Base class of every GoatNotify error."""
@@ -31,3 +36,16 @@ class SkipDelivery(DeliveryError):  # noqa: N818 (a control-flow signal, not an 
     def __init__(self, reason: str) -> None:
         super().__init__(reason)
         self.reason = reason
+
+
+class DeliveryFailed(ExceptionGroup[Exception]):
+    """Raised once every delivery of a notification has finished and at least one failed."""
+
+    result: NotificationResult
+
+    @classmethod
+    def from_result(cls, result: NotificationResult) -> Self:
+        errors = [delivery.error for delivery in result.deliveries if delivery.error is not None]
+        group = cls(f"{len(errors)} of {len(result.deliveries)} deliveries failed", errors)
+        group.result = result
+        return group
