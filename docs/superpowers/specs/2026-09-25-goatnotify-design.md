@@ -137,7 +137,7 @@ class Notifier:
         self,
         channels: Iterable[Channel[Any]],
         *,
-        retry: RetryPolicy = RetryPolicy(),
+        retry: RetryPolicy | None = None,  # None: RetryPolicy()
         hooks: Iterable[Hook] = (),
         queue: Queue | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
@@ -317,7 +317,9 @@ class EmailTransport(Protocol):
 ```
 
 `to_mime(message) -> email.message.EmailMessage` is public so HTTP providers that accept raw
-MIME can reuse it. Header values containing CR or LF raise `InvalidMessageError`.
+MIME can reuse it. Subjects, names, header names and values containing CR or LF raise
+`InvalidMessageError`, and so do custom headers that would override `Subject`, `From`, `To`,
+`Cc`, `Bcc`, `Reply-To`, `Date`, `Content-Type` or `MIME-Version`.
 
 ### 7.3 Mailer and EmailChannel
 
@@ -343,7 +345,8 @@ security: Literal["starttls", "tls", "none"] = "starttls", timeout=30.0,
 ssl_context=None)` uses `smtplib` inside `asyncio.to_thread`, one connection per send.
 Error mapping: connection errors, `SMTPServerDisconnected` and 4xx replies become
 `RetryableError`; 5xx replies, `SMTPAuthenticationError` and `SMTPRecipientsRefused` become
-`PermanentError`. It returns the generated `Message-ID`.
+`PermanentError`. It returns the generated `Message-ID`. The mapping is exposed as
+`classify_smtp_error(error)` so the Django transport reuses it.
 
 ### 7.5 Templates
 
@@ -429,7 +432,9 @@ class WebhookChannel(Channel[WebhookMessage]):
 - With `secret`, the channel adds `X-GoatNotify-Timestamp` and
   `X-GoatNotify-Signature: sha256=<hex>`, an HMAC-SHA256 of `"{timestamp}.{body}"`.
 - 2xx: sent. 408, 429 and 5xx, plus network errors: `RetryableError`, honoring `Retry-After`
-  in seconds. Other statuses: `PermanentError` with the status and a truncated body.
+  in seconds, capped at 300. Other statuses: `PermanentError` with the status and a truncated
+  body. Error messages name the host only, never the full URL, because webhook URLs often
+  embed credentials.
 - `HttpTransport` is reused by HTTP-based email providers (see the Resend example).
 
 ## 10. Queues
@@ -449,9 +454,10 @@ class Queue(Protocol):
 
 - `AsyncioQueue(*, concurrency: int = 10)`: reference in-process queue. It schedules
   `job.run()` as tasks bounded by a semaphore and keeps strong references to them.
-  `DeliveryFailed` from a background job is logged with `logger.exception` (hooks have already
+  Any exception from a background job is logged with `logger.exception` (hooks have already
   fired). `await queue.drain()` waits for pending jobs; `aclose()` drains then rejects new
-  jobs. It is an async context manager.
+  jobs. It is an async context manager and satisfies the runtime-checkable
+  `ClosableQueue(Queue)` protocol, which adds `aclose()`.
 - Out-of-process queues ignore `job.notifier` and rebuild their own notifier in the worker.
   They must serialize the notifiable and the notification; how is adapter-specific (§11).
 
@@ -463,7 +469,7 @@ class Queue(Protocol):
 - `DjangoEmailTransport`: builds `EmailMultiAlternatives` and sends through the configured
   Django email backend via `asgiref.sync.sync_to_async`.
 - `DjangoTemplateRenderer`: `render_to_string` via `sync_to_async`.
-- Model `Notification` (table `goatnotify_notification`): `id` UUID, `recipient` generic
+- Model `NotificationRecord` (table `goatnotify_notification`): `id` UUID, `recipient` generic
   foreign key (`content_type`, `object_id` as text), `kind`, `data` JSON, `created_at`,
   `read_at`. QuerySet: `for_recipient(obj)`, `unread()`, `mark_as_read()`. Migration `0001`.
 - `DjangoNotificationStore`: implements `NotificationStore`; the notifiable must be a model
@@ -482,8 +488,9 @@ class Queue(Protocol):
 
 ## 12. FastAPI integration
 
-- `lifespan(notifier)`: async context manager storing the notifier on `app.state` and draining
-  its queue on shutdown when the queue has a `drain` method.
+- `attach(app, notifier)`: async context manager storing the notifier on `app.state` and closing
+  its queue on shutdown when it is a `ClosableQueue`. `lifespan(notifier)` wraps it for
+  `FastAPI(lifespan=...)`.
 - `get_notifier(request) -> Notifier` and `NotifierDep = Annotated[Notifier, Depends(get_notifier)]`.
 
 ## 13. Testing support
@@ -505,7 +512,7 @@ instant retries.
 - Django tests with `pytest-django` on SQLite: transport through `locmem` backend, templates,
   store and queryset, migration check, Tasks queue with the immediate backend, serialization
   errors.
-- FastAPI tests with `httpx.ASGITransport`.
+- FastAPI tests with `fastapi.testclient.TestClient`, which runs the lifespan.
 - Isolation test: import `goatnotify` and `goatnotify.core` in a subprocess and assert that no
   framework module appears in `sys.modules`.
 - Typing tests (`tests/typing`): fixtures that must pass and fixtures that must fail pyright,
