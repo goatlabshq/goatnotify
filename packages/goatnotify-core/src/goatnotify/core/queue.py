@@ -53,8 +53,10 @@ class AsyncioQueue:
         task.add_done_callback(self._tasks.discard)
 
     async def drain(self) -> None:
-        while self._tasks:
-            await asyncio.gather(*self._tasks, return_exceptions=True)
+        # Finished tasks leave the set one loop iteration later, and gather() over finished
+        # tasks never yields, so waiting only on unfinished ones is what lets that happen.
+        while pending := [task for task in self._tasks if not task.done()]:
+            await asyncio.wait(pending)
 
     async def aclose(self) -> None:
         self._closed = True

@@ -1,6 +1,7 @@
 import asyncio
 import gc
 import logging
+import threading
 from typing import Any
 
 import pytest
@@ -73,3 +74,18 @@ def test_asyncio_queue_is_closable_and_validates_concurrency() -> None:
     assert isinstance(AsyncioQueue(), ClosableQueue)
     with pytest.raises(ValueError, match="concurrency"):
         AsyncioQueue(concurrency=0)
+
+
+def test_drain_returns_when_a_finished_task_is_still_tracked() -> None:
+    # The done-callback that untracks a task runs one loop iteration after the task ends;
+    # a drain() that never yields would spin forever, so the scenario runs in a watched thread.
+    async def scenario() -> None:
+        queue = AsyncioQueue()
+        await Notifier([PingChannel()], queue=queue).enqueue(User(), Pings())
+        await asyncio.sleep(0)
+        await queue.drain()
+
+    worker = threading.Thread(target=asyncio.run, args=(scenario(),), daemon=True)
+    worker.start()
+    worker.join(timeout=2)
+    assert not worker.is_alive()
