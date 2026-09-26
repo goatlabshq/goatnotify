@@ -116,8 +116,10 @@ unread.mark_as_read()
 
 - the recipient must be a **saved model instance** (it is sent as its model label and primary
   key and reloaded in the worker);
-- the notification must be a **module-level dataclass** whose fields are JSON values or saved
-  model instances.
+- the notification must be a **module-level dataclass**, defined in an installed app, whose
+  fields are saved model instances or plain JSON: `str`, `int`, `float`, `bool`, `None`, `list`
+  and `dict` with string keys. Tuples, enums and other subclasses are refused because they would
+  come back as different types in the worker.
 
 ```python
 @dataclass

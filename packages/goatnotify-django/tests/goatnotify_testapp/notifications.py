@@ -1,10 +1,12 @@
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import StrEnum
 
 from goatnotify import (
     DatabaseChannel,
     DatabaseMessage,
     EmailChannel,
+    JsonValue,
     Mailable,
     Mailer,
     Message,
@@ -47,3 +49,18 @@ def build_notifier() -> Notifier:
 
 def build_nothing() -> object:
     return object()
+
+
+class Tier(StrEnum):
+    PRO = "pro"
+
+
+@dataclass
+class Tagged(Notification[Member]):
+    tags: tuple[str, ...] | None = None
+    tier: Tier | None = None
+    labels: dict[int, str] = field(default_factory=dict[int, str])
+    extra: dict[str, JsonValue] = field(default_factory=dict[str, JsonValue])
+
+    def messages(self, notifiable: Member) -> Iterable[Message]:
+        return []

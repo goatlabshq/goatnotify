@@ -1,3 +1,4 @@
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -6,7 +7,7 @@ import pytest
 from django.core import mail
 from django.test import override_settings
 from goatnotify_testapp.models import Member
-from goatnotify_testapp.notifications import MEMORY, Welcome
+from goatnotify_testapp.notifications import MEMORY, Tagged, Tier, Welcome
 
 from goatnotify import ConfigurationError, Message, Notification
 from goatnotify.django.models import NotificationRecord
@@ -92,3 +93,25 @@ def test_a_factory_must_return_a_notifier() -> None:
         pytest.raises(ConfigurationError, match="Notifier"),
     ):
         get_notifier()
+
+
+@pytest.mark.parametrize(
+    "notification",
+    [Tagged(tags=("a", "b")), Tagged(tier=Tier.PRO), Tagged(labels={1: "one"})],
+    ids=["tuple", "enum", "int-keys"],
+)
+def test_values_that_would_not_round_trip_are_rejected(notification: Tagged) -> None:
+    with pytest.raises(ConfigurationError, match="JSON"):
+        dump_notification(notification)
+
+
+def test_user_data_cannot_pose_as_a_model_reference() -> None:
+    notification = Tagged(extra={"__model__": "goatnotify_testapp.member", "pk": 1})
+    assert load_notification(dump_notification(notification)) == notification
+
+
+def test_only_installed_apps_can_be_imported_from_a_payload() -> None:
+    sys.modules.pop("this", None)
+    with pytest.raises(ConfigurationError, match="installed app"):
+        load_notification({"class": "this:x", "fields": {}})
+    assert "this" not in sys.modules
