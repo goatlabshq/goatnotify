@@ -96,3 +96,20 @@ async def test_django_templates_render_mailables() -> None:
         "Welcome Zoé",
         "<p>Welcome Zoé</p>",
     )
+
+
+async def test_inline_images_keep_their_content_id() -> None:
+    await DjangoEmailTransport().send(
+        EmailMessage(
+            subject="x",
+            sender=Address("a@goat.dev"),
+            to=(Address("b@c.d"),),
+            text="Hi",
+            html='<img src="cid:logo.png">',
+            attachments=(Attachment("logo.png", b"\x89PNG", "image/png", inline=True),),
+        )
+    )
+    raw = mail.outbox[0].message().as_string()
+    assert "multipart/related" in raw
+    assert "Content-ID: <logo.png>" in raw
+    assert 'Content-Disposition: inline; filename="logo.png"' in raw
