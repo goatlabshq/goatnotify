@@ -1,0 +1,62 @@
+site_name: GoatNotify
+site_description: A modern, type-safe, framework-agnostic notification system for Python.
+repo_url: https://github.com/goatlabshq/goatnotify
+site_url: https://goatlabshq.github.io/goatnotify/
+repo_name: goatlabshq/goatnotify
+edit_uri: edit/main/docs/
+strict: true
+exclude_docs: |
+  superpowers/
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Introduction: index.md
+  - Getting started: getting-started.md
+  - Guide:
+      - Notifications: notifications.md
+      - Notifiables: notifiable.md
+      - Mailables: mailables.md
+      - Templates: templates.md
+      - Channels: channels.md
+      - Transports: transports.md
+      - Retries and failures: retries.md
+      - Queues: queues.md
+  - Extending:
+      - Custom channels: custom-channels.md
+      - Custom transports: custom-transports.md
+  - Integrations:
+      - Django: integrations/django.md
+      - FastAPI: integrations/fastapi.md
