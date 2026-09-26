@@ -43,7 +43,7 @@ namespace; only the facade owns `goatnotify/__init__.py` and uses `pkgutil.exten
 |---|---|---|---|
 | `goatnotify-core` | `goatnotify.core` | notifications, notifier, mail, channels, transports, retry, events, queue, testing fakes | none |
 | `goatnotify-jinja` | `goatnotify.jinja` | `JinjaRenderer` | `jinja2>=3.1` |
-| `goatnotify-django` | `goatnotify.django` | email transport, template renderer, ORM store, model, migration, Tasks queue, default notifier | `django>=6.0` |
+| `goatnotify-django` | `goatnotify.django` | email transport, template renderer, ORM store, model, migration, Tasks queue, default notifier | `django>=6.1` |
 | `goatnotify-fastapi` | `goatnotify.fastapi` | lifespan, dependency | `fastapi>=0.115` |
 | `goatnotify` | `goatnotify` | facade re-exporting the core public API | `goatnotify-core` |
 
@@ -53,7 +53,7 @@ Top-level folders: `packages/`, `tests/{integration,typing}/`, `examples/`, `doc
 `scripts/`, `release/`, `.github/`, `.typecheck/`. Per-package unit tests live in
 `packages/<name>/tests/`.
 
-Target: Python 3.14+ (PEP 695 generics, deferred annotations). Django 6.0+ for `django.tasks`.
+Target: Python 3.14+ (PEP 695 generics, deferred annotations). Django 6.1+ (`django.tasks` and the `MAILERS` setting).
 
 ## 3. Core concepts
 
@@ -531,12 +531,13 @@ Copied from GoatSEO and adapted:
 - lefthook: ruff and actionlint on pre-commit, conventional commit check on commit-msg,
   pyright and pytest on pre-push.
 - Workflows: `ci.yml` (lint, type-check, tests on Linux and macOS, build, twine check, clean
-  install smoke test, strict consumer type-check), `security.yml` (CodeQL for Python and
-  Actions, pip-audit, dependency review), `release-please.yml` calling reusable `release.yml`
+  install smoke test, strict consumer type-check), `security.yml` (Semgrep Community
+  Edition, Gitleaks, OSV-Scanner and zizmor as plain failing jobs), `release-please.yml` calling reusable `release.yml`
   (PyPI trusted publishing), `docs.yml` (mkdocs-material to GitHub Pages).
 - `release/config.json` and `release/.manifest.json`; internal pins carry
   `# x-release-please-version`.
-- Dependabot for uv and GitHub Actions. All actions pinned by commit hash.
+- Dependabot for uv and GitHub Actions with a 7-day cooldown, matching uv's
+  `exclude-newer = "7 days"`. All actions pinned by commit hash.
 - MIT licence, repository `goatlabshq/goatnotify`.
 
 ## 16. Documentation and examples
