@@ -5,7 +5,8 @@ import urllib.error
 import urllib.request
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Protocol
+from email.message import Message
+from typing import IO, Protocol, override
 from urllib.parse import urlsplit
 
 from goatnotify.core.errors import InvalidMessageError
@@ -45,8 +46,26 @@ class HttpTransport(Protocol):
     async def send(self, request: HttpRequest) -> HttpResponse: ...
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    # urllib would replay a POST as a bodiless GET and forward signature headers to any host.
+    @override
+    def redirect_request(
+        self,
+        req: urllib.request.Request,
+        fp: IO[bytes],
+        code: int,
+        msg: str,
+        headers: Message,
+        newurl: str,
+    ) -> None:
+        return None
+
+
 class UrllibTransport:
-    """HttpTransport on urllib.request, run in a worker thread."""
+    """HttpTransport on urllib.request, run in a worker thread; redirects are returned as is."""
+
+    def __init__(self) -> None:
+        self._opener = urllib.request.build_opener(_NoRedirect)
 
     async def send(self, request: HttpRequest) -> HttpResponse:
         require_http_url(request.url)
@@ -58,7 +77,7 @@ class UrllibTransport:
         )
         try:
             # Safe: send() has already restricted the URL to http and https.
-            with urllib.request.urlopen(prepared, timeout=request.timeout) as response:  # noqa: S310 # nosemgrep
+            with self._opener.open(prepared, timeout=request.timeout) as response:  # nosemgrep
                 return HttpResponse(
                     response.status, dict(response.headers.items()), response.read()
                 )

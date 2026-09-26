@@ -162,3 +162,10 @@ async def test_unexpected_transport_errors_do_not_leak_the_url(
     assert error.__suppress_context__
     assert "SECRET-TOKEN" not in str(error)
     assert "SECRET-TOKEN" not in caplog.text
+
+
+async def test_redirects_are_permanent_failures() -> None:
+    transport = MemoryHttpTransport()
+    transport.respond(HttpResponse(301, {"Location": "https://elsewhere.example.com/"}, b""))
+    with pytest.raises(PermanentError, match="301"):
+        await WebhookChannel(transport).send(User(), WebhookMessage({}, url=HOOK))

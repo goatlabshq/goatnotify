@@ -12,6 +12,11 @@ from goatnotify.core.http import HttpRequest, HttpResponse, UrllibTransport
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         body = self.rfile.read(int(self.headers["Content-Length"]))
+        if self.path == "/moved":
+            self.send_response(301)
+            self.send_header("Location", "/ok")
+            self.end_headers()
+            return
         status = 500 if self.path == "/fail" else 200
         self.send_response(status)
         self.send_header("X-Echo", self.headers["X-Token"] or "")
@@ -61,3 +66,8 @@ async def test_network_failures_raise_os_error() -> None:
 
 def test_header_lookup_is_case_insensitive() -> None:
     assert HttpResponse(200, {"Retry-After": "5"}, b"").header("retry-after") == "5"
+
+
+async def test_redirects_are_returned_not_followed(base_url: str) -> None:
+    response = await UrllibTransport().send(_request(f"{base_url}/moved"))
+    assert (response.status, response.header("Location")) == (301, "/ok")
