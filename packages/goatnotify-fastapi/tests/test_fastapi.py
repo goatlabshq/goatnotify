@@ -1,0 +1,84 @@
+from collections.abc import AsyncGenerator, Iterable
+from contextlib import asynccontextmanager
+
+import pytest
+from core_support import User
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from goatnotify import (
+    AsyncioQueue,
+    ConfigurationError,
+    EmailChannel,
+    Mailable,
+    Mailer,
+    Message,
+    Notification,
+    Notifier,
+)
+from goatnotify.core.testing import MemoryTransport
+from goatnotify.fastapi import NotifierDep, attach, lifespan
+
+
+class Hello(Mailable):
+    subject = "Hello"
+
+    def text(self) -> str | None:
+        return "Hello!"
+
+
+class Greeting(Notification[User]):
+    def messages(self, notifiable: User) -> Iterable[Message]:
+        yield Hello()
+
+
+def _app(app: FastAPI) -> FastAPI:
+    @app.post("/now")
+    async def now(notifier: NotifierDep) -> dict[str, bool]:
+        result = await notifier.notify(User(), Greeting())
+        return {"ok": result.ok}
+
+    @app.post("/later")
+    async def later(notifier: NotifierDep) -> dict[str, bool]:
+        await notifier.enqueue(User(), Greeting())
+        return {"queued": True}
+
+    return app
+
+
+def _notifier() -> tuple[Notifier, MemoryTransport]:
+    transport = MemoryTransport()
+    mailer = Mailer(transport, sender="noreply@goat.dev")
+    return Notifier([EmailChannel(mailer)], queue=AsyncioQueue()), transport
+
+
+def test_the_notifier_is_injected() -> None:
+    notifier, transport = _notifier()
+    with TestClient(_app(FastAPI(lifespan=lifespan(notifier)))) as client:
+        assert client.post("/now").json() == {"ok": True}
+    assert len(transport.outbox) == 1
+
+
+def test_queued_notifications_are_drained_on_shutdown() -> None:
+    notifier, transport = _notifier()
+    with TestClient(_app(FastAPI(lifespan=lifespan(notifier)))) as client:
+        assert client.post("/later").json() == {"queued": True}
+    assert len(transport.outbox) == 1
+
+
+def test_attach_composes_with_an_existing_lifespan() -> None:
+    notifier, transport = _notifier()
+
+    @asynccontextmanager
+    async def app_lifespan(app: FastAPI) -> AsyncGenerator[None]:
+        async with attach(app, notifier):
+            yield
+
+    with TestClient(_app(FastAPI(lifespan=app_lifespan))) as client:
+        client.post("/now")
+    assert len(transport.outbox) == 1
+
+
+def test_a_missing_notifier_is_a_configuration_error() -> None:
+    with TestClient(_app(FastAPI())) as client, pytest.raises(ConfigurationError, match="lifespan"):
+        client.post("/now")
