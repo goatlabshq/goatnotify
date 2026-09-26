@@ -4,6 +4,7 @@ import mimetypes
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from email import headerregistry
 from email.utils import formataddr, parseaddr
 from pathlib import Path
 from typing import Final
@@ -11,6 +12,7 @@ from typing import Final
 from goatnotify.core.errors import InvalidMessageError
 
 DEFAULT_MIMETYPE: Final = "application/octet-stream"
+MAILBOX_SPECIALS: Final = frozenset('<>()[],;:\\"')
 INLINE_NAME: Final = re.compile(r"[A-Za-z0-9._-]+")
 RESERVED_HEADERS: Final = frozenset(
     {"subject", "from", "to", "cc", "bcc", "reply-to", "date", "content-type", "mime-version"}
@@ -22,6 +24,17 @@ def _reject_line_breaks(value: str, what: str) -> None:
         raise InvalidMessageError(f"{what} must not contain line breaks")
 
 
+def _is_single_mailbox(email: str) -> bool:
+    # Providers re-parse formatted addresses, so "a@b.com,c@d.com" would reach two mailboxes.
+    local, _, domain = email.rpartition("@")
+    if not local or not domain or any(c in MAILBOX_SPECIALS or c.isspace() for c in email):
+        return False
+    try:
+        return headerregistry.Address(addr_spec=email).addr_spec == email
+    except ValueError:
+        return False
+
+
 @dataclass(frozen=True, slots=True)
 class Address:
     email: str
@@ -31,8 +44,7 @@ class Address:
         _reject_line_breaks(self.email, "An email address")
         if self.name is not None:
             _reject_line_breaks(self.name, "An address name")
-        local, _, domain = self.email.rpartition("@")
-        if not local or not domain or any(c.isspace() for c in self.email):
+        if not _is_single_mailbox(self.email):
             raise InvalidMessageError(f"{self.email!r} is not an email address")
 
     @classmethod

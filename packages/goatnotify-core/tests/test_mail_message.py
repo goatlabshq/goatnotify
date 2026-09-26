@@ -95,3 +95,17 @@ def test_inline_attachment_names_must_be_unique() -> None:
     logo = Attachment("logo.png", b"x", "image/png", inline=True)
     with pytest.raises(InvalidMessageError, match=r"logo\.png"):
         EmailMessage(subject="x", sender=SENDER, to=(SENDER,), html="x", attachments=(logo, logo))
+
+
+@pytest.mark.parametrize(
+    "email",
+    ["a@b.com,victim@evil.com", "a@b.com;victim@evil.com", "<a@b.com>", 'a"@b.com', "a@b.com)"],
+)
+def test_an_address_holds_exactly_one_mailbox(email: str) -> None:
+    with pytest.raises(InvalidMessageError, match="not an email address"):
+        Address(email)
+
+
+def test_parse_rejects_several_mailboxes() -> None:
+    with pytest.raises(InvalidMessageError):
+        Address.parse("Ada <a@b.com>, Eve <victim@evil.com>")
