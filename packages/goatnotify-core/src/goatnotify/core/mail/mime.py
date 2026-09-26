@@ -1,6 +1,7 @@
 """Conversion of a rendered EmailMessage to a standard library MIME message."""
 
 from email.message import EmailMessage as MimeMessage
+from email.message import MIMEPart
 from email.utils import formatdate, make_msgid
 
 from goatnotify.core.mail.message import Address, Attachment, EmailMessage
@@ -19,8 +20,13 @@ def to_mime(message: EmailMessage) -> MimeMessage:
     if "Message-ID" not in mime:
         mime["Message-ID"] = make_msgid(domain=message.sender.email.rpartition("@")[2])
     _set_body(mime, message)
+    # Fetched once: each add_related() on a fresh lookup would nest another related part.
+    html = mime.get_body(("html",))
     for attachment in message.attachments:
-        _attach(mime, attachment)
+        if attachment.inline and html is not None:
+            _embed(html, attachment)
+        else:
+            _attach(mime, attachment)
     return mime
 
 
@@ -40,12 +46,13 @@ def _set_body(mime: MimeMessage, message: EmailMessage) -> None:
 
 def _attach(mime: MimeMessage, attachment: Attachment) -> None:
     maintype, subtype = attachment.mimetype.split("/")
-    html = mime.get_body(("html",)) if attachment.inline else None
-    if html is None:
-        mime.add_attachment(
-            attachment.content, maintype=maintype, subtype=subtype, filename=attachment.filename
-        )
-        return
+    mime.add_attachment(
+        attachment.content, maintype=maintype, subtype=subtype, filename=attachment.filename
+    )
+
+
+def _embed(html: MIMEPart, attachment: Attachment) -> None:
+    maintype, subtype = attachment.mimetype.split("/")
     html.add_related(
         attachment.content,
         maintype=maintype,

@@ -64,7 +64,8 @@ Attachment.from_path("logo.png", inline=True)
 ```
 
 `from_path` guesses the MIME type from the file name. An inline attachment is referenced from the
-HTML body with its file name as content id:
+HTML body with its file name as content id, so inline names may only use letters, digits, dots,
+dashes and underscores, and must be unique within a message:
 
 ```html
 <img src="cid:logo.png" alt="Goat">

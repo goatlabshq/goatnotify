@@ -83,3 +83,15 @@ def test_line_breaks_are_rejected_everywhere(build: object) -> None:
 def test_reserved_headers_cannot_be_overridden(header: str) -> None:
     with pytest.raises(InvalidMessageError, match="reserved"):
         EmailMessage(subject="Hi", sender=SENDER, to=(SENDER,), text="x", headers={header: "v"})
+
+
+@pytest.mark.parametrize("filename", ["logo 1.png", "<logo>.png", "logo@2x.png"])
+def test_inline_attachment_names_must_be_valid_content_ids(filename: str) -> None:
+    with pytest.raises(InvalidMessageError, match="Inline attachment"):
+        Attachment(filename, b"x", "image/png", inline=True)
+
+
+def test_inline_attachment_names_must_be_unique() -> None:
+    logo = Attachment("logo.png", b"x", "image/png", inline=True)
+    with pytest.raises(InvalidMessageError, match=r"logo\.png"):
+        EmailMessage(subject="x", sender=SENDER, to=(SENDER,), html="x", attachments=(logo, logo))

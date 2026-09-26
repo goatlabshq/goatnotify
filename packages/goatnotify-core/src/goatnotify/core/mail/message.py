@@ -1,6 +1,7 @@
 """Rendered email value objects, the input of every EmailTransport."""
 
 import mimetypes
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from email.utils import formataddr, parseaddr
@@ -10,6 +11,7 @@ from typing import Final
 from goatnotify.core.errors import InvalidMessageError
 
 DEFAULT_MIMETYPE: Final = "application/octet-stream"
+INLINE_NAME: Final = re.compile(r"[A-Za-z0-9._-]+")
 RESERVED_HEADERS: Final = frozenset(
     {"subject", "from", "to", "cc", "bcc", "reply-to", "date", "content-type", "mime-version"}
 )
@@ -61,6 +63,11 @@ class Attachment:
         _reject_line_breaks(self.filename, "An attachment filename")
         if self.mimetype.count("/") != 1:
             raise InvalidMessageError(f"{self.mimetype!r} is not a MIME type")
+        if self.inline and not INLINE_NAME.fullmatch(self.filename):
+            raise InvalidMessageError(
+                f"Inline attachment {self.filename!r} is referenced as cid:<filename>, so its "
+                "name may only use letters, digits, dots, dashes and underscores"
+            )
 
     @classmethod
     def from_path(
@@ -97,6 +104,9 @@ class EmailMessage:
             _reject_line_breaks(value, f"Header {name!r}")
             if name.lower() in RESERVED_HEADERS:
                 raise InvalidMessageError(f"{name} is reserved: set it through the message fields")
+        inline_names = [a.filename for a in self.attachments if a.inline]
+        if duplicates := sorted({name for name in inline_names if inline_names.count(name) > 1}):
+            raise InvalidMessageError(f"Inline attachment names must be unique: {duplicates}")
         if not self.recipients:
             raise InvalidMessageError("An email needs at least one recipient")
         if self.html is None and self.text is None:

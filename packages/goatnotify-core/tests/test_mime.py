@@ -98,3 +98,23 @@ def test_non_ascii_content_survives() -> None:
     body = mime.get_body(("plain",))
     assert body is not None
     assert body.get_content().strip() == "Merci à vous"
+
+
+def test_several_inline_images_share_one_related_part() -> None:
+    mime = _parse(
+        EmailMessage(
+            subject="x",
+            sender=SENDER,
+            to=(ADA,),
+            text="Hi",
+            html='<img src="cid:a.png"><img src="cid:b.png">',
+            attachments=(
+                Attachment("a.png", b"a", "image/png", inline=True),
+                Attachment("b.png", b"b", "image/png", inline=True),
+            ),
+        )
+    )
+    related = [part for part in mime.walk() if part.get_content_type() == "multipart/related"]
+    assert len(related) == 1
+    children = [part.get_content_type() for part in related[0].iter_parts()]
+    assert children == ["text/html", "image/png", "image/png"]
