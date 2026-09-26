@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import logging
 from collections.abc import Iterable
 
 import pytest
@@ -131,3 +132,33 @@ async def test_end_to_end_retry_then_success() -> None:
     result = await notifier.notify(User(webhook=HOOK), Deployed())
     assert (result.deliveries[0].status, result.deliveries[0].attempts) == (DeliveryStatus.SENT, 2)
     assert json.loads(transport.requests[0].body) == {"event": "deployed", "version": "1.2.0"}
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://hooks.example.com/api/webhooks/123/SEC RET",
+        "https://hooks.example.com/api/webhooks/123/SECRÉT",
+        "https://hooks.example.com/api/webhooks/123/SEC\tRET",
+    ],
+)
+async def test_malformed_urls_are_rejected_without_leaking_them(url: str) -> None:
+    with pytest.raises(InvalidMessageError) as caught:
+        await WebhookChannel(MemoryHttpTransport()).send(User(), WebhookMessage({}, url=url))
+    assert "SEC" not in str(caught.value)
+
+
+async def test_unexpected_transport_errors_do_not_leak_the_url(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    transport = MemoryHttpTransport()
+    transport.respond(ValueError(f"cannot send to {HOOK}"))
+    notifier = Notifier([WebhookChannel(transport)])
+    with caplog.at_level(logging.WARNING, logger="goatnotify"):
+        result = await notifier.notify(User(webhook=HOOK), Deployed(), raise_on_failure=False)
+    error = result.deliveries[0].error
+    assert isinstance(error, PermanentError)
+    assert error.__cause__ is None
+    assert error.__suppress_context__
+    assert "SECRET-TOKEN" not in str(error)
+    assert "SECRET-TOKEN" not in caplog.text

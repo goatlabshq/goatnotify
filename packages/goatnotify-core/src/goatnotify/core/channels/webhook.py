@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 
 from goatnotify.core._json import JsonValue
 from goatnotify.core.channel import Channel
-from goatnotify.core.errors import PermanentError, RetryableError, SkipDelivery
+from goatnotify.core.errors import DeliveryError, PermanentError, RetryableError, SkipDelivery
 from goatnotify.core.http import (
     HttpRequest,
     HttpResponse,
@@ -69,8 +69,15 @@ class WebhookChannel(Channel[WebhookMessage]):
             response = await self._transport.send(
                 HttpRequest(message.method, url, headers, body, self._timeout)
             )
+        except DeliveryError:
+            raise
+        # "from None": transport errors often quote the full URL, which may embed a token.
         except OSError as error:
-            raise RetryableError(f"Webhook request to {host} failed: {error}") from error
+            detail = f"Webhook request to {host} failed: {type(error).__name__}"
+            raise RetryableError(detail) from None
+        except Exception as error:
+            detail = f"Webhook request to {host} failed: {type(error).__name__}"
+            raise PermanentError(detail) from None
         _raise_for_status(response, host)
         return None
 

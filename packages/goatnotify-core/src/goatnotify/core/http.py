@@ -17,6 +17,8 @@ def require_http_url(url: str) -> None:
     parts = urlsplit(url)
     if parts.scheme not in ALLOWED_SCHEMES or not parts.netloc:
         raise InvalidMessageError("Only absolute http and https URLs are allowed")
+    if not url.isascii() or not url.isprintable() or " " in url:
+        raise InvalidMessageError("URLs must be percent-encoded ASCII without spaces")
 
 
 @dataclass(frozen=True, slots=True)
