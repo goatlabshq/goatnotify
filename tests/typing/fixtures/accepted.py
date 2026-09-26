@@ -91,3 +91,8 @@ async def usage(user: User) -> None:
         await notifier.notify(user, Joined())
     except DeliveryFailed as failure:
         assert_type(failure.result, NotificationResult)
+
+
+class RenamedParameter(Notification[User]):
+    def messages(self, user: User) -> Iterable[Message]:
+        yield DatabaseMessage(kind="renamed", data={"email": user.email})
