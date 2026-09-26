@@ -17,7 +17,8 @@ class JinjaRenderer:
     @classmethod
     def from_directory(cls, directory: str | Path, *, enable_async: bool = True) -> Self:
         return cls(
-            Environment(
+            # A Flask-oriented rule; HTML autoescaping is enabled right below.
+            Environment(  # nosemgrep
                 loader=FileSystemLoader(directory),
                 autoescape=select_autoescape(("html", "htm", "xml")),
                 undefined=StrictUndefined,

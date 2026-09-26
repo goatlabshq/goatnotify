@@ -55,7 +55,8 @@ class UrllibTransport:
             request.url, data=request.body, headers=dict(request.headers), method=request.method
         )
         try:
-            with urllib.request.urlopen(prepared, timeout=request.timeout) as response:  # noqa: S310
+            # Safe: send() has already restricted the URL to http and https.
+            with urllib.request.urlopen(prepared, timeout=request.timeout) as response:  # noqa: S310 # nosemgrep
                 return HttpResponse(
                     response.status, dict(response.headers.items()), response.read()
                 )

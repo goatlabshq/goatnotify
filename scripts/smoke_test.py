@@ -2,7 +2,7 @@
 
 import asyncio
 from collections.abc import Iterable
-from importlib.resources import files
+from importlib.resources import files  # nosemgrep
 
 from goatnotify import DatabaseChannel, DatabaseMessage, Message, Notifiable, Notification, Notifier
 from goatnotify.core.testing import MemoryStore

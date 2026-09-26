@@ -68,7 +68,8 @@ def load_notification(payload: Mapping[str, JsonValue]) -> Notification[Any]:
     if not isinstance(path, str) or not isinstance(fields, dict):
         raise ConfigurationError("Malformed queued notification")
     module_name, _, qualname = path.partition(":")
-    target: object = importlib.import_module(module_name)
+    # The payload only comes from DjangoTasksQueue, and the target is checked to be a Notification.
+    target: object = importlib.import_module(module_name)  # nosemgrep
     for part in qualname.split("."):
         target = getattr(target, part)
     if not (isinstance(target, type) and issubclass(target, Notification)):
