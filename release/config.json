@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "python",
+  "bump-minor-pre-major": true,
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "packages": {
+    ".": {
+      "package-name": "goatnotify",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        "packages/goatnotify/pyproject.toml",
+        "packages/goatnotify-core/pyproject.toml",
+        "packages/goatnotify-jinja/pyproject.toml",
+        "packages/goatnotify-django/pyproject.toml",
+        "packages/goatnotify-fastapi/pyproject.toml"
+      ]
+    }
+  }
+}
