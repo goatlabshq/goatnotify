@@ -10,7 +10,7 @@ from core_support import Ping, PingChannel, Pings, User
 from goatnotify.core.errors import ConfigurationError, PermanentError
 from goatnotify.core.notification import Notifiable
 from goatnotify.core.notifier import Notifier
-from goatnotify.core.queue import AsyncioQueue, ClosableQueue
+from goatnotify.core.queue import AsyncioQueue, DrainableQueue
 
 
 async def test_enqueue_without_a_queue_is_a_configuration_error() -> None:
@@ -70,8 +70,8 @@ async def test_concurrency_is_bounded() -> None:
     assert peak == 2
 
 
-def test_asyncio_queue_is_closable_and_validates_concurrency() -> None:
-    assert isinstance(AsyncioQueue(), ClosableQueue)
+def test_asyncio_queue_is_drainable_and_validates_concurrency() -> None:
+    assert isinstance(AsyncioQueue(), DrainableQueue)
     with pytest.raises(ValueError, match="concurrency"):
         AsyncioQueue(concurrency=0)
 
@@ -89,3 +89,18 @@ def test_drain_returns_when_a_finished_task_is_still_tracked() -> None:
     worker.start()
     worker.join(timeout=2)
     assert not worker.is_alive()
+
+
+def test_a_queue_survives_successive_event_loops() -> None:
+    queue = AsyncioQueue(concurrency=1)
+    channel = PingChannel()
+    notifier = Notifier([channel], queue=queue)
+
+    async def burst() -> None:
+        for text in ("a", "b", "c"):
+            await notifier.enqueue(User(), Pings(text))
+        await queue.drain()
+
+    asyncio.run(burst())
+    asyncio.run(burst())
+    assert len(channel.sent) == 6

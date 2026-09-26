@@ -82,3 +82,12 @@ def test_attach_composes_with_an_existing_lifespan() -> None:
 def test_a_missing_notifier_is_a_configuration_error() -> None:
     with TestClient(_app(FastAPI())) as client, pytest.raises(ConfigurationError, match="lifespan"):
         client.post("/now")
+
+
+def test_the_same_app_can_start_twice() -> None:
+    notifier, transport = _notifier()
+    app = _app(FastAPI(lifespan=lifespan(notifier)))
+    for _ in range(2):
+        with TestClient(app) as client:
+            assert client.post("/later").json() == {"queued": True}
+    assert len(transport.outbox) == 2

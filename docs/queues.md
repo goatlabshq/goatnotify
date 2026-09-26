@@ -35,7 +35,7 @@ await queue.aclose()  # drain, then refuse new jobs
 
 It is also an async context manager. A job that fails is logged with its traceback on the
 `goatnotify` logger. Jobs are lost if the process dies: use it for fire-and-forget work
-in web applications (the [FastAPI integration](integrations/fastapi.md) closes it on
+in web applications (the [FastAPI integration](integrations/fastapi.md) drains it on
 shutdown), and a durable queue for anything that must survive a restart.
 
 ## Django Tasks

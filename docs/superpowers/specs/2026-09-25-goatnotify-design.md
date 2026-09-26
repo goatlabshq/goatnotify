@@ -457,7 +457,8 @@ class Queue(Protocol):
   Any exception from a background job is logged with `logger.exception` (hooks have already
   fired). `await queue.drain()` waits for pending jobs; `aclose()` drains then rejects new
   jobs. It is an async context manager and satisfies the runtime-checkable
-  `ClosableQueue(Queue)` protocol, which adds `aclose()`.
+  `DrainableQueue(Queue)` protocol, which adds `drain()`. Its semaphore is created per event
+  loop, so one queue survives successive loops (test clients, repeated lifespans).
 - Out-of-process queues ignore `job.notifier` and rebuild their own notifier in the worker.
   They must serialize the notifiable and the notification; how is adapter-specific (§11).
 
@@ -489,7 +490,8 @@ class Queue(Protocol):
 ## 12. FastAPI integration
 
 - `attach(app, notifier)`: async context manager storing the notifier on `app.state` and closing
-  its queue on shutdown when it is a `ClosableQueue`. `lifespan(notifier)` wraps it for
+  its queue on shutdown when it is a `DrainableQueue` (draining, not closing, so the app can
+  start again). `lifespan(notifier)` wraps it for
   `FastAPI(lifespan=...)`.
 - `get_notifier(request) -> Notifier` and `NotifierDep = Annotated[Notifier, Depends(get_notifier)]`.
 

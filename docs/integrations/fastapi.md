@@ -34,7 +34,8 @@ raises `ConfigurationError`.
 ## Background delivery
 
 With an `AsyncioQueue`, `enqueue()` returns immediately and the notification is delivered in the
-background. On shutdown, the lifespan closes the queue, which waits for pending notifications.
+background. On shutdown, the lifespan drains the queue: it waits for pending notifications and leaves the
+queue usable, so the same app can start again (as test clients do).
 
 ## Composing with your own lifespan
 

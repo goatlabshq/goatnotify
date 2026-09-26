@@ -31,7 +31,7 @@ from goatnotify.core.mail.smtp import SmtpTransport
 from goatnotify.core.mail.transport import EmailTransport
 from goatnotify.core.notification import Message, Notifiable, Notification
 from goatnotify.core.notifier import Notifier
-from goatnotify.core.queue import AsyncioQueue, ClosableQueue, NotificationJob, Queue
+from goatnotify.core.queue import AsyncioQueue, DrainableQueue, NotificationJob, Queue
 from goatnotify.core.results import DeliveryResult, DeliveryStatus, NotificationResult
 from goatnotify.core.retry import NO_RETRY, Backoff, ExponentialBackoff, RetryPolicy
 from goatnotify.core.templates import TemplateRenderer
@@ -43,7 +43,6 @@ __all__ = [
     "Attachment",
     "Backoff",
     "Channel",
-    "ClosableQueue",
     "ConfigurationError",
     "DatabaseChannel",
     "DatabaseMessage",
@@ -51,6 +50,7 @@ __all__ = [
     "DeliveryFailed",
     "DeliveryResult",
     "DeliveryStatus",
+    "DrainableQueue",
     "EmailChannel",
     "EmailMessage",
     "EmailTransport",

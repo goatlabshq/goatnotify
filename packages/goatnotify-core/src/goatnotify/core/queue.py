@@ -31,8 +31,8 @@ class Queue(Protocol):
 
 
 @runtime_checkable
-class ClosableQueue(Queue, Protocol):
-    async def aclose(self) -> None: ...
+class DrainableQueue(Queue, Protocol):
+    async def drain(self) -> None: ...
 
 
 class AsyncioQueue:
@@ -41,7 +41,8 @@ class AsyncioQueue:
     def __init__(self, *, concurrency: int = 10) -> None:
         if concurrency < 1:
             raise ValueError("AsyncioQueue.concurrency must be at least 1")
-        self._semaphore = asyncio.Semaphore(concurrency)
+        self._concurrency = concurrency
+        self._semaphore: tuple[asyncio.AbstractEventLoop, asyncio.Semaphore] | None = None
         self._tasks: set[asyncio.Task[None]] = set()
         self._closed = False
 
@@ -73,8 +74,14 @@ class AsyncioQueue:
     ) -> None:
         await self.aclose()
 
+    def _semaphore_for(self, loop: asyncio.AbstractEventLoop) -> asyncio.Semaphore:
+        # A semaphore binds to the first loop it waits on; test clients start a loop per run.
+        if self._semaphore is None or self._semaphore[0] is not loop:
+            self._semaphore = (loop, asyncio.Semaphore(self._concurrency))
+        return self._semaphore[1]
+
     async def _run[R: Notifiable](self, job: NotificationJob[R]) -> None:
-        async with self._semaphore:
+        async with self._semaphore_for(asyncio.get_running_loop()):
             try:
                 await job.run()
             except Exception:

@@ -7,7 +7,7 @@ from typing import Annotated, Final
 from fastapi import Depends, FastAPI, Request
 from goatnotify.core.errors import ConfigurationError
 from goatnotify.core.notifier import Notifier
-from goatnotify.core.queue import ClosableQueue
+from goatnotify.core.queue import DrainableQueue
 
 __all__ = ["NotifierDep", "attach", "get_notifier", "lifespan"]
 
@@ -20,8 +20,8 @@ async def attach(app: FastAPI, notifier: Notifier) -> AsyncGenerator[None]:
     try:
         yield
     finally:
-        if isinstance(notifier.queue, ClosableQueue):
-            await notifier.queue.aclose()
+        if isinstance(notifier.queue, DrainableQueue):
+            await notifier.queue.drain()
 
 
 def lifespan(notifier: Notifier) -> Callable[[FastAPI], AbstractAsyncContextManager[None]]:

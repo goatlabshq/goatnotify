@@ -8,7 +8,7 @@ PUBLIC = {
     "Attachment",
     "Backoff",
     "Channel",
-    "ClosableQueue",
+    "DrainableQueue",
     "ConfigurationError",
     "DatabaseChannel",
     "DatabaseMessage",
