@@ -59,7 +59,7 @@ await notifier.notify(user, AdminOnly())  # rejected by Pyright
 | Method | Use |
 |---|---|
 | `await notifier.notify(recipient, notification)` | Deliver now and return a `NotificationResult` |
-| `notifier.notify_sync(recipient, notification)` | Same, from synchronous code |
+| `notifier.notify_sync(recipient, notification)` | Same, from synchronous code without framework-managed threads |
 | `await notifier.enqueue(recipient, notification)` | Hand over to the configured [queue](queues.md) |
 
 `notify()` and `notify_sync()` accept `raise_on_failure=False` to get the result instead of a

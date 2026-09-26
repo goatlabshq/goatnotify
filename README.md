@@ -6,7 +6,7 @@ GoatNotify sends notifications by email, stores them in a database, posts them t
 delivers them through any channel you write. A notification yields typed messages, and the type
 of each message decides which channel delivers it, so Pyright checks the whole path.
 
-- Async-first, with a synchronous `notify_sync()` for scripts and sync views
+- Async-first, with a synchronous `notify_sync()` for scripts and synchronous code
 - Zero runtime dependencies in the core: SMTP and webhooks use the standard library
 - Retries with exponential backoff, structured results and lightweight hooks
 - Pluggable channels, transports, template renderers, stores and queues

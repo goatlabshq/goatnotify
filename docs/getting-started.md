@@ -83,8 +83,10 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-From synchronous code (a script, a synchronous Django view), use `notify_sync()` with the same
-arguments. It refuses to run inside an event loop: there, `await notify()` instead.
+From synchronous code with no framework-managed threads (a script, a CLI command, a worker),
+use `notify_sync()` with the same arguments. It refuses to run inside an event loop: there,
+`await notify()` instead. In synchronous Django views, use the
+[Django helpers](integrations/django.md#synchronous-code), which are safe under ASGI.
 
 ```python
 result = notifier.notify_sync(User("Ada", "ada@example.com"), Welcome())

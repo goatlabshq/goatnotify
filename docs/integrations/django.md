@@ -46,13 +46,28 @@ async def signup(request: HttpRequest) -> HttpResponse:
     member = await Member.objects.acreate(email=request.POST["email"])
     await get_notifier().notify(member, Welcome(plan="free"))
     ...
+```
+
+## Synchronous code
+
+In synchronous views, signal handlers and management commands, use the helpers of
+`goatnotify.django.notifier` instead of `Notifier.notify_sync()`:
+
+```python
+from goatnotify.django.notifier import enqueue_sync, notify_sync
 
 
 def signup_sync(request: HttpRequest) -> HttpResponse:
     member = Member.objects.create(email=request.POST["email"])
-    get_notifier().notify_sync(member, Welcome(plan="free"))
+    notify_sync(member, Welcome(plan="free"))
+    enqueue_sync(member, Digest(period="weekly"))
     ...
 ```
+
+Under ASGI, Django runs synchronous views in a thread-sensitive executor. `Notifier.notify_sync()`
+starts its own event loop there, and the Django adapters (ORM store, email, templates) then wait
+for that same thread, which never frees up. The helpers go through `async_to_sync`, which runs
+those adapter calls in the view's own thread.
 
 To build it yourself, point `GOATNOTIFY_NOTIFIER` at a factory:
 
