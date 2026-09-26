@@ -27,6 +27,7 @@ dev = [
 docs = ["mkdocs-material>=9.6"]
 
 [tool.uv]
+exclude-newer = "7 days"
 package = false
 default-groups = ["dev"]
 
@@ -81,6 +82,10 @@ reportUnnecessaryTypeIgnoreComment = "error"
 addopts = ["--import-mode=importlib", "-ra", "--strict-markers", "--strict-config"]
 testpaths = ["packages", "tests"]
 pythonpath = ["packages/goatnotify-core/tests", "packages/goatnotify-django/tests"]
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # Starlette 1.6 still uses this anyio alias; 1.7 fixed it but is inside the uv cooldown.
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
