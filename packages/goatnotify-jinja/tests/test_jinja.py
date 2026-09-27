@@ -1,4 +1,5 @@
-from collections.abc import Mapping
+import threading
+from collections.abc import Callable, Mapping
 from pathlib import Path
 
 import jinja2
@@ -55,3 +56,21 @@ async def test_the_renderer_plugs_into_the_mailer(tmp_path: Path) -> None:
     mailer = Mailer(MemoryTransport(), sender="noreply@goat.dev", renderer=renderer)
     message = await mailer.render(Hello(), to=["zoe@example.com"])
     assert (message.html, message.text) == ("<p>Hello Zoé</p>", "Hello Zoé")
+
+
+async def test_templates_are_loaded_off_the_event_loop_thread() -> None:
+    threads: list[int] = []
+
+    class RecordingLoader(jinja2.DictLoader):
+        def get_source(
+            self, environment: jinja2.Environment, template: str
+        ) -> tuple[str, None, Callable[[], bool]]:
+            threads.append(threading.get_ident())
+            return super().get_source(environment, template)
+
+    environment = jinja2.Environment(
+        loader=RecordingLoader(TEMPLATES), enable_async=True, autoescape=True
+    )
+    await JinjaRenderer(environment).render("hello.txt", {"name": "Ada"})
+    assert threads
+    assert threading.get_ident() not in threads

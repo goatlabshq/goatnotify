@@ -27,7 +27,8 @@ class JinjaRenderer:
         )
 
     async def render(self, template: str, context: Mapping[str, object]) -> str:
-        compiled = self._environment.get_template(template)
+        # Loading reads the file system synchronously, even in async environments.
+        compiled = await asyncio.to_thread(self._environment.get_template, template)
         if self._environment.is_async:
             return await compiled.render_async(dict(context))
         return await asyncio.to_thread(compiled.render, dict(context))
