@@ -41,11 +41,12 @@ def _imported_modules(path: Path) -> list[str]:
     return modules
 
 
-def test_the_core_source_never_imports_a_framework() -> None:
+def test_the_core_source_imports_only_the_standard_library() -> None:
+    allowed = sys.stdlib_module_names | {"goatnotify"}
     offenders = [
         f"{path.relative_to(CORE_SOURCE)}: {module}"
         for path in CORE_SOURCE.rglob("*.py")
         for module in _imported_modules(path)
-        if module.split(".")[0] in FORBIDDEN
+        if module.split(".")[0] not in allowed
     ]
     assert offenders == []
