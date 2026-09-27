@@ -20,6 +20,11 @@ def _formatted(addresses: tuple[Address, ...]) -> list[str]:
     return [str(address) for address in addresses]
 
 
+def _pop_message_id(headers: dict[str, str]) -> str | None:
+    name = next((name for name in headers if name.lower() == "message-id"), None)
+    return None if name is None else headers.pop(name)
+
+
 class _EmailWithInlineImages(EmailMultiAlternatives):
     # Django has no inline-image API; message() is the public hook to wrap the HTML body.
     inline: tuple[Attachment, ...] = ()
@@ -51,7 +56,8 @@ class DjangoEmailTransport:
         return await sync_to_async(self._send)(message)
 
     def _send(self, message: EmailMessage) -> str:
-        message_id = message.headers.get("Message-ID") or make_msgid(
+        headers = dict(message.headers)
+        message_id = _pop_message_id(headers) or make_msgid(
             domain=message.sender.email.rpartition("@")[2]
         )
         outgoing = _EmailWithInlineImages(
@@ -62,7 +68,7 @@ class DjangoEmailTransport:
             cc=_formatted(message.cc),
             bcc=_formatted(message.bcc),
             reply_to=_formatted(message.reply_to),
-            headers={**message.headers, "Message-ID": message_id},
+            headers={**headers, "Message-ID": message_id},
         )
         if message.text is None:
             outgoing.content_subtype = "html"

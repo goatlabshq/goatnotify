@@ -113,3 +113,17 @@ async def test_inline_images_keep_their_content_id() -> None:
     assert "multipart/related" in raw
     assert "Content-ID: <logo.png>" in raw
     assert 'Content-Disposition: inline; filename="logo.png"' in raw
+
+
+async def test_a_custom_message_id_is_kept_whatever_its_case() -> None:
+    message_id = await DjangoEmailTransport().send(
+        EmailMessage(
+            subject="x",
+            sender=Address("a@goat.dev"),
+            to=(Address("b@c.d"),),
+            text="x",
+            headers={"Message-Id": "<custom@goat.dev>"},
+        )
+    )
+    assert message_id == "<custom@goat.dev>"
+    assert mail.outbox[0].message().get_all("Message-ID") == ["<custom@goat.dev>"]
