@@ -133,3 +133,14 @@ class Welcome(Notification[Member]):
 
 Anything else raises `ConfigurationError` when you call `enqueue()`, not later in the worker.
 `DjangoTasksQueue(queue_name=..., priority=..., backend=...)` forwards those options to the task.
+
+Inside a transaction, a worker may run the task before the transaction commits and not find the
+recipient yet. Enqueue after the commit:
+
+```python
+from django.db import transaction
+
+with transaction.atomic():
+    member = Member.objects.create(email=email)
+    transaction.on_commit(lambda: enqueue_sync(member, Welcome(plan="free")))
+```

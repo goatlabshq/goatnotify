@@ -229,6 +229,7 @@ DeliveryFailed(ExceptionGroup[Exception])   # .result: NotificationResult
 class RetryPolicy:
     max_attempts: int = 3
     backoff: Backoff = ExponentialBackoff()
+    max_delay: float = 300.0  # caps backoff delays and retry_after alike
 
 class Backoff(Protocol):
     def delay(self, attempt: int) -> float: ...
@@ -455,9 +456,9 @@ class Queue(Protocol):
 - `AsyncioQueue(*, concurrency: int = 10)`: reference in-process queue. It schedules
   `job.run()` as tasks bounded by a semaphore and keeps strong references to them.
   Any exception from a background job is logged with `logger.exception` (hooks have already
-  fired). `await queue.drain()` waits for pending jobs; `aclose()` drains then rejects new
-  jobs. It is an async context manager and satisfies the runtime-checkable
-  `DrainableQueue(Queue)` protocol, which adds `drain()`. Its semaphore is created per event
+  fired). `await queue.drain(timeout=None)` waits for pending jobs and cancels (and logs) those
+  still running when the timeout expires; `aclose(timeout=None)` drains then rejects new jobs. It is an async context manager and satisfies the runtime-checkable
+  `DrainableQueue(Queue)` protocol, which adds `drain(*, timeout)`. Its semaphore is created per event
   loop, so one queue survives successive loops (test clients, repeated lifespans).
 - Out-of-process queues ignore `job.notifier` and rebuild their own notifier in the worker.
   They must serialize the notifiable and the notification; how is adapter-specific (§11).
@@ -476,11 +477,15 @@ class Queue(Protocol):
 - `DjangoNotificationStore`: implements `NotificationStore`; the notifiable must be a model
   instance, otherwise `ConfigurationError`.
 - `NotifiableModel` mixin: `route_notification("email")` returns `self.email` when present.
-- `DjangoTasksQueue(task_options=...)`: enqueues a `django.tasks` task. The notifiable must be
-  a saved model instance (serialized as `app_label.model_name` and primary key); the
-  notification must be a dataclass whose fields are JSON values or saved model instances
-  (serialized as import path plus fields). Anything else raises `ConfigurationError` at
-  enqueue time, not in the worker.
+- `DjangoTasksQueue(*, queue_name=None, priority=None, backend=None)`: enqueues a `django.tasks`
+  task, forwarding those options to `Task.using()`. The notifiable must be a saved model
+  instance (serialized as model label and primary key); the notification must be a module-level
+  dataclass from an installed app whose fields are exact JSON values (no tuples, enums or other
+  subclasses) or saved model instances, each field tagged as `json` or `model`. Anything else
+  raises `ConfigurationError` at enqueue time, not in the worker; the worker only imports
+  modules of installed apps.
+- `notify_sync()` and `enqueue_sync()`: synchronous helpers built on `async_to_sync`, because
+  `Notifier.notify_sync()` (`asyncio.run`) deadlocks in thread-sensitive sync views under ASGI.
 - `get_notifier()`: returns a per-process cached notifier. If the setting
   `GOATNOTIFY_NOTIFIER` names a factory (`"myproject.notifications.build_notifier"`), it is
   used; otherwise the default wires email (Django backend and templates,
@@ -489,10 +494,10 @@ class Queue(Protocol):
 
 ## 12. FastAPI integration
 
-- `attach(app, notifier)`: async context manager storing the notifier on `app.state` and closing
-  its queue on shutdown when it is a `DrainableQueue` (draining, not closing, so the app can
-  start again). `lifespan(notifier)` wraps it for
-  `FastAPI(lifespan=...)`.
+- `attach(app, notifier, *, shutdown_timeout=30.0)`: async context manager storing the notifier
+  on `app.state` and draining its queue on shutdown when it is a `DrainableQueue` (draining, not
+  closing, so the app can start again). `lifespan(notifier, *, shutdown_timeout=30.0)` wraps it
+  for `FastAPI(lifespan=...)`.
 - `get_notifier(request) -> Notifier` and `NotifierDep = Annotated[Notifier, Depends(get_notifier)]`.
 
 ## 13. Testing support
