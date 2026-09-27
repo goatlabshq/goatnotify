@@ -89,7 +89,10 @@ async def test_retry_after_is_honoured() -> None:
     assert caught.value.retry_after == 7.0
 
 
-@pytest.mark.parametrize(("header", "expected"), [("86400", 300.0), ("-5", None), ("soon", None)])
+@pytest.mark.parametrize(
+    ("header", "expected"),
+    [("86400", 300.0), ("-5", None), ("soon", None), ("²", None), (" 7 ", 7.0)],
+)
 async def test_retry_after_is_capped(header: str, expected: float | None) -> None:
     transport = MemoryHttpTransport()
     transport.respond(HttpResponse(503, {"Retry-After": header}, b""))

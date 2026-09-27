@@ -101,7 +101,7 @@ def _raise_for_status(response: HttpResponse, host: str) -> None:
 
 
 def _retry_after(response: HttpResponse) -> float | None:
-    value = response.header("Retry-After")
-    if value is None or not value.strip().isdigit():
+    value = (response.header("Retry-After") or "").strip()
+    if not (value.isascii() and value.isdecimal()):
         return None
     return min(float(value), MAX_RETRY_AFTER)
