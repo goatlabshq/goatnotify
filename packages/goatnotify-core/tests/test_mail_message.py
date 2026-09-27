@@ -79,7 +79,10 @@ def test_line_breaks_are_rejected_everywhere(build: object) -> None:
         build()
 
 
-@pytest.mark.parametrize("header", ["Subject", "bcc", "Content-Type"])
+@pytest.mark.parametrize(
+    "header",
+    ["Subject", "bcc", "Content-Type", "Sender", "Content-Transfer-Encoding", "Return-Path"],
+)
 def test_reserved_headers_cannot_be_overridden(header: str) -> None:
     with pytest.raises(InvalidMessageError, match="reserved"):
         EmailMessage(subject="Hi", sender=SENDER, to=(SENDER,), text="x", headers={header: "v"})
@@ -109,3 +112,9 @@ def test_an_address_holds_exactly_one_mailbox(email: str) -> None:
 def test_parse_rejects_several_mailboxes() -> None:
     with pytest.raises(InvalidMessageError):
         Address.parse("Ada <a@b.com>, Eve <victim@evil.com>")
+
+
+@pytest.mark.parametrize("name", ["X Y", "X:Y", "", "X-Tàg"])
+def test_header_names_must_be_rfc_5322_field_names(name: str) -> None:
+    with pytest.raises(InvalidMessageError, match="header name"):
+        EmailMessage(subject="Hi", sender=SENDER, to=(SENDER,), text="x", headers={name: "v"})

@@ -14,8 +14,22 @@ from goatnotify.core.errors import InvalidMessageError
 DEFAULT_MIMETYPE: Final = "application/octet-stream"
 MAILBOX_SPECIALS: Final = frozenset('<>()[],;:\\"')
 INLINE_NAME: Final = re.compile(r"[A-Za-z0-9._-]+")
+FIELD_NAME: Final = re.compile(r"[!-9;-~]+")
 RESERVED_HEADERS: Final = frozenset(
-    {"subject", "from", "to", "cc", "bcc", "reply-to", "date", "content-type", "mime-version"}
+    {
+        "subject",
+        "from",
+        "sender",
+        "to",
+        "cc",
+        "bcc",
+        "reply-to",
+        "return-path",
+        "date",
+        "content-type",
+        "content-transfer-encoding",
+        "mime-version",
+    }
 )
 
 
@@ -112,7 +126,8 @@ class EmailMessage:
     def __post_init__(self) -> None:
         _reject_line_breaks(self.subject, "A subject")
         for name, value in self.headers.items():
-            _reject_line_breaks(name, "A header name")
+            if not FIELD_NAME.fullmatch(name):
+                raise InvalidMessageError(f"{name!r} is not a valid header name")
             _reject_line_breaks(value, f"Header {name!r}")
             if name.lower() in RESERVED_HEADERS:
                 raise InvalidMessageError(f"{name} is reserved: set it through the message fields")

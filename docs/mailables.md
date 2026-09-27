@@ -84,6 +84,7 @@ A non-empty `to=` replaces the mailable's own `to`.
 ## Header injection protection
 
 Subjects, display names, addresses, header names and header values containing a line break are
-rejected with `InvalidMessageError` before any MIME is built. Custom headers cannot override
-`Subject`, `From`, `To`, `Cc`, `Bcc`, `Reply-To`, `Date`, `Content-Type` or `MIME-Version`: set
-those through the mailable's fields.
+rejected with `InvalidMessageError` before any MIME is built. Header names must be RFC 5322
+field names (printable ASCII, no space or colon), and custom headers cannot override `Subject`,
+`From`, `Sender`, `To`, `Cc`, `Bcc`, `Reply-To`, `Return-Path`, `Date`, `Content-Type`,
+`Content-Transfer-Encoding` or `MIME-Version`: set those through the mailable's fields.
