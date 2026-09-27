@@ -17,6 +17,7 @@ type SmtpSecurity = Literal["starttls", "tls", "none"]
 
 
 PERMANENT_SMTP_ERRORS: Final = (
+    ssl.SSLCertVerificationError,
     smtplib.SMTPAuthenticationError,
     smtplib.SMTPRecipientsRefused,
     smtplib.SMTPNotSupportedError,

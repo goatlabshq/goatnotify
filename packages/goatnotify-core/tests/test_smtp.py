@@ -1,6 +1,7 @@
 import asyncio
 import smtplib
 import socket
+import ssl
 from collections.abc import AsyncIterator
 
 import pytest
@@ -75,6 +76,7 @@ async def test_an_unreachable_server_is_retryable() -> None:
         (smtplib.SMTPServerDisconnected("gone"), RetryableError),
         (ConnectionRefusedError("refused"), RetryableError),
         (TimeoutError("slow"), RetryableError),
+        (ssl.SSLCertVerificationError("self-signed certificate"), PermanentError),
     ],
 )
 def test_smtp_errors_are_classified(error: Exception, expected: type[Exception]) -> None:
