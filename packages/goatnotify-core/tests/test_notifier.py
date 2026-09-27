@@ -229,3 +229,15 @@ async def test_notify_sync_inside_a_loop_is_refused() -> None:
 def test_channels_keep_their_declared_name() -> None:
     channel: Channel[Ping] = PingChannel()
     assert channel.name == "ping"
+
+
+async def test_retry_after_is_capped_by_the_policy() -> None:
+    sleep = SleepRecorder()
+    channel = PingChannel(RetryableError("come back tomorrow", retry_after=86_400))
+    policy = RetryPolicy(max_attempts=2, max_delay=120.0)
+    await Notifier([channel], retry=policy, sleep=sleep).notify(User(), Pings("x"))
+    assert sleep.delays == [120.0]
+
+
+def test_the_default_policy_caps_delays_at_five_minutes() -> None:
+    assert RetryPolicy().max_delay == 300.0

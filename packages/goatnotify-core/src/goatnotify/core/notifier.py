@@ -128,11 +128,7 @@ class Notifier:
             except RetryableError as error:
                 if attempt >= policy.max_attempts:
                     return await self._failed(scope, attempt, error)
-                delay = (
-                    error.retry_after
-                    if error.retry_after is not None
-                    else policy.backoff.delay(attempt)
-                )
+                delay = policy.delay(attempt, error.retry_after)
                 await self._emit(
                     events.Retrying(**scope, attempt=attempt, delay=delay, error=error)
                 )

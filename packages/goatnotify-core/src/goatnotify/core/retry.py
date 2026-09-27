@@ -36,10 +36,17 @@ class ExponentialBackoff:
 class RetryPolicy:
     max_attempts: int = 3
     backoff: Backoff = field(default_factory=ExponentialBackoff)
+    max_delay: float = 300.0
 
     def __post_init__(self) -> None:
         if self.max_attempts < 1:
             raise ValueError("RetryPolicy.max_attempts must be at least 1")
+        if self.max_delay < 0:
+            raise ValueError("RetryPolicy.max_delay must not be negative")
+
+    def delay(self, attempt: int, retry_after: float | None) -> float:
+        wanted = self.backoff.delay(attempt) if retry_after is None else retry_after
+        return min(wanted, self.max_delay)
 
 
 NO_RETRY: Final = RetryPolicy(max_attempts=1)

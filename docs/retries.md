@@ -36,6 +36,9 @@ The delay after attempt `n` is `min(maximum, initial * multiplier ** (n - 1))`. 
 (the default) the actual delay is drawn uniformly between 0 and that value ("full jitter"), which
 spreads retries from many workers.
 
+Every delay, including a channel's `retry_after`, is capped by `RetryPolicy.max_delay` (300 seconds
+by default), so no delivery waits for hours in memory.
+
 A channel's own `retry=` overrides the notifier's policy:
 
 ```python
