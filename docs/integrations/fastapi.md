@@ -35,7 +35,9 @@ raises `ConfigurationError`.
 
 With an `AsyncioQueue`, `enqueue()` returns immediately and the notification is delivered in the
 background. On shutdown, the lifespan drains the queue: it waits for pending notifications and leaves the
-queue usable, so the same app can start again (as test clients do).
+queue usable, so the same app can start again (as test clients do). Notifications still running
+after `shutdown_timeout` (30 seconds by default, `None` to wait forever) are cancelled and
+logged: `lifespan(notifier, shutdown_timeout=10)`.
 
 ## Composing with your own lifespan
 

@@ -30,7 +30,8 @@ notifier = Notifier(channels, queue=queue)
 
 await notifier.enqueue(user, Welcome())
 await queue.drain()  # wait for pending jobs
-await queue.aclose()  # drain, then refuse new jobs
+await queue.drain(timeout=30)  # then cancel and log whatever is still running
+await queue.aclose()  # drain, then refuse new jobs (also takes timeout=)
 ```
 
 It is also an async context manager. A job that fails is logged with its traceback on the

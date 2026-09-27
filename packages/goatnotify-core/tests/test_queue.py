@@ -104,3 +104,19 @@ def test_a_queue_survives_successive_event_loops() -> None:
     asyncio.run(burst())
     asyncio.run(burst())
     assert len(channel.sent) == 6
+
+
+async def test_drain_cancels_what_outlives_its_timeout(caplog: pytest.LogCaptureFixture) -> None:
+    class Stuck(PingChannel):
+        async def send(self, notifiable: Notifiable, message: Ping) -> str | None:
+            await asyncio.sleep(60)
+            return await super().send(notifiable, message)
+
+    queue = AsyncioQueue()
+    channel = Stuck()
+    await Notifier([channel], queue=queue).enqueue(User(), Pings("x"))
+    with caplog.at_level(logging.WARNING, logger="goatnotify"):
+        async with asyncio.timeout(2):
+            await queue.drain(timeout=0.05)
+    assert channel.sent == []
+    assert "Cancelled 1 queued notification" in caplog.text

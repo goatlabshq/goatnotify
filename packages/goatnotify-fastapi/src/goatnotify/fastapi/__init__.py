@@ -12,21 +12,26 @@ from goatnotify.core.queue import DrainableQueue
 __all__ = ["NotifierDep", "attach", "get_notifier", "lifespan"]
 
 STATE_KEY: Final = "goatnotify"
+DEFAULT_SHUTDOWN_TIMEOUT: Final = 30.0
 
 
 @asynccontextmanager
-async def attach(app: FastAPI, notifier: Notifier) -> AsyncGenerator[None]:
+async def attach(
+    app: FastAPI, notifier: Notifier, *, shutdown_timeout: float | None = DEFAULT_SHUTDOWN_TIMEOUT
+) -> AsyncGenerator[None]:
     setattr(app.state, STATE_KEY, notifier)
     try:
         yield
     finally:
         if isinstance(notifier.queue, DrainableQueue):
-            await notifier.queue.drain()
+            await notifier.queue.drain(timeout=shutdown_timeout)
 
 
-def lifespan(notifier: Notifier) -> Callable[[FastAPI], AbstractAsyncContextManager[None]]:
+def lifespan(
+    notifier: Notifier, *, shutdown_timeout: float | None = DEFAULT_SHUTDOWN_TIMEOUT
+) -> Callable[[FastAPI], AbstractAsyncContextManager[None]]:
     def _lifespan(app: FastAPI) -> AbstractAsyncContextManager[None]:
-        return attach(app, notifier)
+        return attach(app, notifier, shutdown_timeout=shutdown_timeout)
 
     return _lifespan
 

@@ -32,7 +32,7 @@ class Queue(Protocol):
 
 @runtime_checkable
 class DrainableQueue(Queue, Protocol):
-    async def drain(self) -> None: ...
+    async def drain(self, *, timeout: float | None = None) -> None: ...
 
 
 class AsyncioQueue:
@@ -53,15 +53,26 @@ class AsyncioQueue:
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
 
-    async def drain(self) -> None:
+    async def drain(self, *, timeout: float | None = None) -> None:
+        deadline = None if timeout is None else asyncio.get_running_loop().time() + timeout
         # Finished tasks leave the set one loop iteration later, and gather() over finished
         # tasks never yields, so waiting only on unfinished ones is what lets that happen.
         while pending := [task for task in self._tasks if not task.done()]:
-            await asyncio.wait(pending)
+            remaining = None if deadline is None else deadline - asyncio.get_running_loop().time()
+            if remaining is not None and remaining <= 0:
+                await self._cancel(pending)
+                return
+            await asyncio.wait(pending, timeout=remaining)
 
-    async def aclose(self) -> None:
+    async def aclose(self, *, timeout: float | None = None) -> None:
         self._closed = True
-        await self.drain()
+        await self.drain(timeout=timeout)
+
+    async def _cancel(self, pending: list[asyncio.Task[None]]) -> None:
+        logger.warning("Cancelled %d queued notification(s) still running", len(pending))
+        for task in pending:
+            task.cancel()
+        await asyncio.wait(pending)
 
     async def __aenter__(self) -> Self:
         return self
