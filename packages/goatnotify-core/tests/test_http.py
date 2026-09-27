@@ -20,6 +20,7 @@ class Handler(BaseHTTPRequestHandler):
         status = 500 if self.path == "/fail" else 200
         self.send_response(status)
         self.send_header("X-Echo", self.headers["X-Token"] or "")
+        self.send_header("X-User-Agent", self.headers["User-Agent"] or "")
         self.end_headers()
         self.wfile.write(body.upper())
 
@@ -71,3 +72,14 @@ def test_header_lookup_is_case_insensitive() -> None:
 async def test_redirects_are_returned_not_followed(base_url: str) -> None:
     response = await UrllibTransport().send(_request(f"{base_url}/moved"))
     assert (response.status, response.header("Location")) == (301, "/ok")
+
+
+async def test_requests_identify_goatnotify(base_url: str) -> None:
+    response = await UrllibTransport().send(_request(f"{base_url}/ok"))
+    assert (response.header("X-User-Agent") or "").startswith("goatnotify/")
+
+
+async def test_an_explicit_user_agent_is_kept(base_url: str) -> None:
+    request = HttpRequest("POST", f"{base_url}/ok", {"User-Agent": "custom/1"}, b"", 5)
+    response = await UrllibTransport().send(request)
+    assert response.header("X-User-Agent") == "custom/1"

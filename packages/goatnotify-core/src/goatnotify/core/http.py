@@ -6,11 +6,21 @@ import urllib.request
 from collections.abc import Mapping
 from dataclasses import dataclass
 from email.message import Message
+from importlib.metadata import PackageNotFoundError, version
 from typing import IO, Protocol, override
 from urllib.parse import urlsplit
 
 from goatnotify.core.errors import InvalidMessageError
 
+
+def _distribution_version() -> str:
+    try:
+        return version("goatnotify-core")
+    except PackageNotFoundError:
+        return "unknown"
+
+
+USER_AGENT = f"goatnotify/{_distribution_version()}"
 ALLOWED_SCHEMES = frozenset({"http", "https"})
 
 
@@ -46,6 +56,13 @@ class HttpTransport(Protocol):
     async def send(self, request: HttpRequest) -> HttpResponse: ...
 
 
+def _with_user_agent(headers: Mapping[str, str]) -> dict[str, str]:
+    # urllib's default "Python-urllib" agent is rejected by some bot-protected endpoints.
+    if any(name.lower() == "user-agent" for name in headers):
+        return dict(headers)
+    return {**headers, "User-Agent": USER_AGENT}
+
+
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     # urllib would replay a POST as a bodiless GET and forward signature headers to any host.
     @override
@@ -73,7 +90,10 @@ class UrllibTransport:
 
     def _send(self, request: HttpRequest) -> HttpResponse:
         prepared = urllib.request.Request(  # noqa: S310 (scheme checked by require_http_url)
-            request.url, data=request.body, headers=dict(request.headers), method=request.method
+            request.url,
+            data=request.body,
+            headers=_with_user_agent(request.headers),
+            method=request.method,
         )
         try:
             # Safe: send() has already restricted the URL to http and https.
