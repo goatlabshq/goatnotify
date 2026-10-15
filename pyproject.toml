@@ -51,13 +51,11 @@ select = [
     "A", "ARG", "B", "C4", "DTZ", "E", "F", "FA", "FBT", "I", "ISC", "N", "PGH", "PIE",
     "PL", "PT", "PTH", "PYI", "RET", "RUF", "S", "SIM", "T20", "TC", "TID", "UP", "W",
 ]
-# FastAPI and Django resolve annotations at runtime, so typing-only imports stay real imports.
 ignore = ["PLR0913", "PLR2004", "TC001", "TC002", "TC003"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S101", "S105", "S106", "PLC0415", "FBT001", "FBT003", "ARG001", "ARG002"]
 "**/migrations/**" = ["RUF012", "E501"]
-# Interface implementations in examples and scripts legitimately ignore some parameters.
 "scripts/**" = ["S101", "S105", "S106", "T201", "ARG002"]
 "examples/**" = ["T201", "ARG002"]
 
@@ -84,7 +82,6 @@ testpaths = ["packages", "tests"]
 pythonpath = ["packages/goatnotify-core/tests", "packages/goatnotify-django/tests"]
 filterwarnings = [
     "error",
-    # Starlette 1.6 still uses this anyio alias; 1.7 fixed it but is inside the uv cooldown.
     "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
 ]
 asyncio_mode = "auto"
