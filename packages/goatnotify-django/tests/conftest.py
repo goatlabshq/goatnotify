@@ -7,6 +7,7 @@ import pytest
 from django.conf import settings
 from django.core import mail
 from django.core.management import call_command
+from mailpit import SMTP_HOST, SMTP_PORT
 
 TEMPLATES = {
     "emails/welcome.html": "<p>Welcome {{ name }}</p>",
@@ -28,6 +29,10 @@ if not settings.configured:
         MAILERS={
             "default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"},
             "broken": {"BACKEND": "goatnotify_testapp.mail.BrokenBackend"},
+            "mailpit": {
+                "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+                "OPTIONS": {"host": SMTP_HOST, "port": SMTP_PORT, "timeout": 10},
+            },
         },
         DEFAULT_FROM_EMAIL="Goat <noreply@goat.dev>",
         TASKS={"default": {"BACKEND": "django.tasks.backends.immediate.ImmediateBackend"}},
