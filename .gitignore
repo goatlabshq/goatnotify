@@ -12,4 +12,7 @@ wheels/
 # Tooling caches and build output
 .pytest_cache/
 .ruff_cache/
+.hypothesis/
 site/
+.superpowers/
+docs/superpowers
