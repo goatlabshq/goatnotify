@@ -29,8 +29,7 @@ uv workspace of independently published packages sharing the `goatnotify` import
 - Ruff ignores `TC001`-`TC003` because FastAPI and Django resolve annotations at runtime, so
   typing-only imports must stay real imports. Examples and scripts may ignore `ARG002`:
   protocol implementations there legitimately skip parameters.
-- uv resolves with `exclude-newer = "7 days"`. It currently pins Starlette 1.6, whose anyio
-  `BlockingPortal` deprecation is filtered in pytest; drop the filter once 1.7 resolves.
+- uv resolves with `exclude-newer = "7 days"`.
 - zizmor's `self-repository` audit is disabled (`.github/zizmor.yml`): actionlint 1.7.12
   rejects the `$/` reusable-workflow syntax it asks for.
 

@@ -15,16 +15,16 @@ dev = [
     "goatnotify-jinja",
     "goatnotify-django",
     "goatnotify-fastapi",
-    "django-stubs>=6.0",
-    "httpx2>=2.13",
-    "lefthook>=1.11",
-    "pyright[nodejs]>=1.1.405",
-    "pytest>=8.4",
-    "pytest-asyncio>=1.2",
-    "ruff>=0.13",
-    "twine>=6.2",
+    "django-stubs>=6.1.2",
+    "httpx2>=2.13.1",
+    "lefthook>=2.2.1",
+    "pyright[nodejs]>=1.1.414",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4",
+    "ruff>=0.16.10",
+    "twine>=7.0",
 ]
-docs = ["mkdocs-material>=9.6"]
+docs = ["mkdocs-material>=9.7.7"]
 
 [tool.uv]
 exclude-newer = "7 days"
@@ -80,9 +80,6 @@ reportUnnecessaryTypeIgnoreComment = "error"
 addopts = ["--import-mode=importlib", "-ra", "--strict-markers", "--strict-config"]
 testpaths = ["packages", "tests"]
 pythonpath = ["packages/goatnotify-core/tests", "packages/goatnotify-django/tests"]
-filterwarnings = [
-    "error",
-    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
-]
+filterwarnings = ["error"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
