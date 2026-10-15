@@ -44,6 +44,7 @@ goatnotify-fastapi = { workspace = true }
 [tool.ruff]
 target-version = "py314"
 line-length = 100
+force-exclude = true
 extend-exclude = [".typecheck", "tests/typing/fixtures", "docs/superpowers"]
 
 [tool.ruff.lint]
