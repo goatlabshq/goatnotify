@@ -5,8 +5,6 @@ site_url: https://goatlabshq.github.io/goatnotify/
 repo_name: goatlabshq/goatnotify
 edit_uri: edit/main/docs/
 strict: true
-exclude_docs: |
-  superpowers/
 
 theme:
   name: material
