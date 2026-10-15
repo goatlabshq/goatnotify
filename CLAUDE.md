@@ -43,3 +43,11 @@ uv run pyright
 uv run ruff check . && uv run ruff format --check .
 uv run --only-group docs mkdocs build --strict
 ```
+
+Mailpit integration tests are skipped unless `MAILPIT_API_URL` is set; CI runs them against a
+Mailpit service container:
+
+```bash
+docker run -d --name goatnotify-mailpit -p 127.0.0.1:11025:1025 -p 127.0.0.1:18025:8025 axllent/mailpit
+MAILPIT_API_URL=http://127.0.0.1:18025 MAILPIT_SMTP_PORT=11025 uv run pytest
+```
