@@ -1,5 +1,3 @@
-"""A custom email transport for the Resend HTTP API, built on HttpTransport."""
-
 import asyncio
 import base64
 import json

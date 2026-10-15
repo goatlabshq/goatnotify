@@ -1,5 +1,3 @@
-"""In-memory fakes for testing code that sends notifications."""
-
 from collections import deque
 
 from goatnotify.core.channels.database import StoredNotification
@@ -11,12 +9,10 @@ OK = HttpResponse(200, {}, b"")
 
 
 async def no_sleep(delay: float) -> None:
-    """Drop-in for asyncio.sleep that makes retries instantaneous."""
+    pass
 
 
 class MemoryTransport:
-    """EmailTransport keeping sent messages in `outbox`."""
-
     def __init__(self) -> None:
         self.outbox: list[EmailMessage] = []
         self._failures: deque[Exception] = deque()
@@ -32,8 +28,6 @@ class MemoryTransport:
 
 
 class MemoryStore:
-    """NotificationStore keeping records in memory."""
-
     def __init__(self) -> None:
         self.records: list[tuple[Notifiable, StoredNotification]] = []
 
@@ -45,8 +39,6 @@ class MemoryStore:
 
 
 class MemoryHttpTransport:
-    """HttpTransport recording requests and replaying scripted outcomes."""
-
     def __init__(self) -> None:
         self.requests: list[HttpRequest] = []
         self._outcomes: deque[HttpResponse | Exception] = deque()

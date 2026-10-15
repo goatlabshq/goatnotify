@@ -1,5 +1,3 @@
-"""GoatNotify: a modern, type-safe, framework-agnostic notification system for Python."""
-
 from pkgutil import extend_path
 
 # Editable installs give each workspace package its own sys.path entry; extending __path__

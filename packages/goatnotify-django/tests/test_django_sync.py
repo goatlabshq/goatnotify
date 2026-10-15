@@ -17,7 +17,7 @@ def signup_view(email: str) -> None:
 
 
 async def test_sync_views_under_asgi_do_not_deadlock() -> None:
-    # Django's ASGI handler runs sync views like this; asyncio.run() there used to hang forever.
+    # Django's ASGI handler runs sync views like this, where asyncio.run() deadlocks.
     async with ThreadSensitiveContext():
         await asyncio.wait_for(sync_to_async(signup_view)("ada@example.com"), timeout=5)
         # Django closes the request thread's connections when the response finishes.

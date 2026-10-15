@@ -1,5 +1,3 @@
-"""Database channel: persists notifications through a NotificationStore."""
-
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime

@@ -1,5 +1,3 @@
-"""TemplateRenderer backed by the Django template engines."""
-
 from collections.abc import Mapping
 
 from asgiref.sync import sync_to_async

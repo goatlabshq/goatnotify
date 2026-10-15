@@ -1,5 +1,3 @@
-"""Recipients, messages and notifications."""
-
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import Protocol
@@ -10,8 +8,6 @@ class Notifiable(Protocol):
 
 
 class Message:
-    """Base class of everything a notification yields; its type selects the channel."""
-
     __slots__ = ()
 
 

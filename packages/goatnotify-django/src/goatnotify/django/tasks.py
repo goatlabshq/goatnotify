@@ -1,5 +1,3 @@
-"""Django task delivering queued notifications in the worker."""
-
 from asgiref.sync import sync_to_async
 
 from django.tasks import task

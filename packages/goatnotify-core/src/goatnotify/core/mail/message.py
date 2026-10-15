@@ -1,5 +1,3 @@
-"""Rendered email value objects, the input of every EmailTransport."""
-
 import mimetypes
 import re
 from collections.abc import Mapping

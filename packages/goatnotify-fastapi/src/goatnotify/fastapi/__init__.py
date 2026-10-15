@@ -1,5 +1,3 @@
-"""FastAPI integration for GoatNotify."""
-
 from collections.abc import AsyncGenerator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Annotated, Final

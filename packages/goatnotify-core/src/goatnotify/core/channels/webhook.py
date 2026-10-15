@@ -1,5 +1,3 @@
-"""Webhook channel: posts JSON payloads over an HttpTransport."""
-
 import hashlib
 import hmac
 import json
@@ -63,7 +61,6 @@ class WebhookChannel(Channel[WebhookMessage]):
         require_http_url(url)
         body = json.dumps(message.payload, separators=(",", ":"), ensure_ascii=False).encode()
         headers = {"Content-Type": "application/json", **message.headers, **self._sign(body)}
-        # Webhook URLs often embed credentials (Discord, Slack), so errors only name the host.
         host = urlsplit(url).netloc
         try:
             response = await self._transport.send(

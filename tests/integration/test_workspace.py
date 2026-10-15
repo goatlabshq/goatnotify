@@ -13,4 +13,4 @@ PORTIONS = (
 
 @pytest.mark.parametrize("module", PORTIONS)
 def test_every_namespace_portion_is_importable(module: str) -> None:
-    assert importlib.import_module(module).__doc__
+    assert importlib.import_module(module).__name__ == module

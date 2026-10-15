@@ -1,5 +1,3 @@
-"""Email transport protocol."""
-
 from typing import Protocol
 
 from goatnotify.core.mail.message import EmailMessage

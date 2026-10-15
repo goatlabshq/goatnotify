@@ -1,5 +1,3 @@
-"""The notifier routes messages to channels, retries, fires hooks and reports results."""
-
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable, Iterable

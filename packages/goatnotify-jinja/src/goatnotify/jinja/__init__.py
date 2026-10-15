@@ -1,5 +1,3 @@
-"""Jinja2 template renderer for GoatNotify."""
-
 import asyncio
 from collections.abc import Mapping
 from pathlib import Path

@@ -1,5 +1,3 @@
-"""Background dispatch of notifications."""
-
 import asyncio
 import logging
 from dataclasses import dataclass
@@ -36,8 +34,6 @@ class DrainableQueue(Queue, Protocol):
 
 
 class AsyncioQueue:
-    """In-process queue running jobs as asyncio tasks; drain or close it on shutdown."""
-
     def __init__(self, *, concurrency: int = 10) -> None:
         if concurrency < 1:
             raise ValueError("AsyncioQueue.concurrency must be at least 1")

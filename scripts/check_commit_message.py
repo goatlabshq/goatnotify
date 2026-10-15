@@ -1,5 +1,3 @@
-"""commit-msg hook: a single-line conventional commit subject."""
-
 import re
 import sys
 from pathlib import Path

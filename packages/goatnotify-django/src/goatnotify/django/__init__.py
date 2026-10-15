@@ -1,1 +1,0 @@
-"""Django integration for GoatNotify."""

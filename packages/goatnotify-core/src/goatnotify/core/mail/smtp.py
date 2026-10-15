@@ -1,5 +1,3 @@
-"""SMTP transport built on smtplib, run in a worker thread."""
-
 import asyncio
 import logging
 import smtplib

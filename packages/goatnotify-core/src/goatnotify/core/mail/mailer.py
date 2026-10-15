@@ -1,5 +1,3 @@
-"""Mailer: renders mailables and hands them to a transport."""
-
 from collections.abc import Iterable, Mapping, Sequence
 
 from goatnotify.core.errors import ConfigurationError, InvalidMessageError

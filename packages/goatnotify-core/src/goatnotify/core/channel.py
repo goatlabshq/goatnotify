@@ -1,5 +1,3 @@
-"""Base class of delivery channels."""
-
 from abc import ABC, abstractmethod
 
 from goatnotify.core.notification import Message, Notifiable

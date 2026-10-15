@@ -1,5 +1,3 @@
-"""A plain asyncio application sending email, database and webhook notifications."""
-
 import asyncio
 from collections.abc import Iterable
 from dataclasses import dataclass

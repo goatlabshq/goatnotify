@@ -1,5 +1,3 @@
-"""A custom channel: Discord webhooks, built on the HttpTransport abstraction."""
-
 import asyncio
 import json
 from collections.abc import Iterable

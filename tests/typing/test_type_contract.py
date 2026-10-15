@@ -1,5 +1,3 @@
-"""Static typing is part of the API contract: invalid usages must be rejected by Pyright."""
-
 import json
 import subprocess
 import sys

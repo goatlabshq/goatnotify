@@ -1,5 +1,3 @@
-"""Mailable: an email described by a class."""
-
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 
@@ -10,8 +8,6 @@ _EMPTY: MappingProxyType[str, str] = MappingProxyType({})
 
 
 class Mailable(Message):
-    """Subclass it: set envelope attributes and override the content methods you need."""
-
     subject: str = ""
     sender: AddressLike | None = None
     to: Sequence[AddressLike] = ()

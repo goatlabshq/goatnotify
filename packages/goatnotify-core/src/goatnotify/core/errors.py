@@ -1,5 +1,3 @@
-"""Exception hierarchy shared by every GoatNotify component."""
-
 from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
@@ -7,15 +5,15 @@ if TYPE_CHECKING:
 
 
 class NotificationError(Exception):
-    """Base class of every GoatNotify error."""
+    pass
 
 
 class ConfigurationError(NotificationError):
-    """GoatNotify is wired incorrectly: retrying cannot help."""
+    pass
 
 
 class DeliveryError(NotificationError):
-    """Raised by channels and transports to describe a delivery outcome."""
+    pass
 
 
 class RetryableError(DeliveryError):
@@ -39,8 +37,6 @@ class SkipDelivery(DeliveryError):  # noqa: N818 (a control-flow signal, not an 
 
 
 class DeliveryFailed(ExceptionGroup[Exception]):
-    """Raised once every delivery of a notification has finished and at least one failed."""
-
     result: NotificationResult
 
     @classmethod

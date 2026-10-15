@@ -1,5 +1,3 @@
-"""Process-wide notifier for Django projects, built from settings."""
-
 from functools import cache
 from typing import Final
 

@@ -1,5 +1,3 @@
-"""Email channel: delivers Mailable messages through a Mailer."""
-
 from goatnotify.core.channel import Channel
 from goatnotify.core.errors import SkipDelivery
 from goatnotify.core.mail.mailable import Mailable

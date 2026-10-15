@@ -1,5 +1,3 @@
-"""Framework-agnostic core of GoatNotify."""
-
 from goatnotify.core import events
 from goatnotify.core._json import JsonValue
 from goatnotify.core.channel import Channel

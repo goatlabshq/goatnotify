@@ -1,5 +1,3 @@
-"""Type-checked against the installed wheels in CI: every public name must be exported."""
-
 from collections.abc import Iterable
 
 from fastapi import FastAPI

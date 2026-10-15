@@ -1,5 +1,3 @@
-"""Minimal HTTP transport abstraction shared by webhook and HTTP-based email providers."""
-
 import asyncio
 import urllib.error
 import urllib.request
@@ -79,8 +77,6 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class UrllibTransport:
-    """HttpTransport on urllib.request, run in a worker thread; redirects are returned as is."""
-
     def __init__(self) -> None:
         self._opener = urllib.request.build_opener(_NoRedirect)
 

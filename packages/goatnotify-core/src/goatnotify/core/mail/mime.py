@@ -1,5 +1,3 @@
-"""Conversion of a rendered EmailMessage to a standard library MIME message."""
-
 from email.message import EmailMessage as MimeMessage
 from email.message import MIMEPart
 from email.utils import formatdate, make_msgid

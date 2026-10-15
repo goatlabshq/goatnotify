@@ -1,5 +1,3 @@
-"""Test doubles shared by the core test modules."""
-
 from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -35,8 +33,6 @@ class LoudPing(Ping):
 
 
 class PingChannel(Channel[Ping]):
-    """Records pings; each scripted outcome is consumed by one send() call."""
-
     name = "ping"
     message_type = Ping
 

@@ -1,5 +1,3 @@
-"""Queue dispatching notifications through Django Tasks."""
-
 from django.db import models
 from goatnotify.core.errors import ConfigurationError
 from goatnotify.core.notification import Notifiable

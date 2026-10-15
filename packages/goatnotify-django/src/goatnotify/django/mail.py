@@ -1,5 +1,3 @@
-"""EmailTransport sending through the configured Django email backend."""
-
 import email.policy
 import smtplib
 from email.message import EmailMessage as MimeMessage

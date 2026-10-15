@@ -1,5 +1,3 @@
-"""NotificationStore persisting to the NotificationRecord model."""
-
 from asgiref.sync import sync_to_async
 
 from django.contrib.contenttypes.models import ContentType

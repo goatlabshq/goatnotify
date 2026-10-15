@@ -1,5 +1,3 @@
-"""Minimal in-process SMTP server for transport tests."""
-
 import asyncio
 from dataclasses import dataclass, field
 

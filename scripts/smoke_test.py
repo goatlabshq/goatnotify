@@ -1,5 +1,3 @@
-"""Checks that the built wheels install and work outside the repository."""
-
 import asyncio
 from collections.abc import Iterable
 from importlib.resources import files  # nosemgrep

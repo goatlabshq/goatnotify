@@ -1,5 +1,3 @@
-"""JSON forms of notifiables and notifications for Django Tasks, which only accepts JSON."""
-
 import dataclasses
 import importlib
 import math

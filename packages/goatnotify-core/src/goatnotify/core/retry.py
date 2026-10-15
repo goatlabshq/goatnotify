@@ -1,5 +1,3 @@
-"""Retry policies applied by the notifier to RetryableError."""
-
 import random
 from dataclasses import dataclass, field
 from typing import Final, Protocol
