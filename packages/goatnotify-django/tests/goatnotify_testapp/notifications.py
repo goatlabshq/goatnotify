@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 
 from goatnotify import (
+    Channel,
     DatabaseChannel,
     DatabaseMessage,
     EmailChannel,
@@ -10,10 +11,14 @@ from goatnotify import (
     Mailable,
     Mailer,
     Message,
+    Notifiable,
     Notification,
     Notifier,
+    PermanentError,
 )
 from goatnotify.core.testing import MemoryStore, MemoryTransport
+from goatnotify.django.mail import DjangoEmailTransport
+from goatnotify.django.queue import DjangoTasksQueue
 from goatnotify_testapp.models import Member
 
 
@@ -64,3 +69,41 @@ class Tagged(Notification[Member]):
 
     def messages(self, notifiable: Member) -> Iterable[Message]:
         return []
+
+
+@dataclass(frozen=True, slots=True)
+class Alert(Message):
+    text: str
+
+
+class FlakyChannel(Channel[Alert]):
+    name = "alert"
+    message_type = Alert
+
+    def __init__(self) -> None:
+        self.failures_left = 0
+        self.sent: list[Alert] = []
+
+    async def send(self, notifiable: Notifiable, message: Alert) -> str | None:
+        if self.failures_left:
+            self.failures_left -= 1
+            raise PermanentError("alert service down")
+        self.sent.append(message)
+        return None
+
+
+FLAKY = FlakyChannel()
+
+
+@dataclass
+class WelcomeWithAlert(Notification[Member]):
+    plan: str
+
+    def messages(self, notifiable: Member) -> Iterable[Message]:
+        yield WelcomeMail(self.plan)
+        yield Alert(f"{notifiable.email} joined")
+
+
+def build_flaky_notifier() -> Notifier:
+    mailer = Mailer(DjangoEmailTransport(), sender="noreply@goat.dev")
+    return Notifier([EmailChannel(mailer), FLAKY], queue=DjangoTasksQueue(backend="database"))

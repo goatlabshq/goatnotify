@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 from goatnotify.core.errors import ConfigurationError
 from goatnotify.core.notification import Notifiable
@@ -26,4 +28,4 @@ class DjangoTasksQueue:
         task = deliver_notification.using(
             queue_name=self._queue_name, priority=self._priority, backend=self._backend
         )
-        await task.aenqueue(notifiable, notification)
+        await task.aenqueue(notifiable, notification, job_id=str(uuid4()))

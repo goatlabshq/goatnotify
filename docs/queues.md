@@ -64,5 +64,9 @@ class CeleryQueue:
         deliver.delay(user.id, notification.plan)
 ```
 
+To make your own worker's retries idempotent, persist which positions of `messages()` were
+delivered and pass them back: `await notifier.notify(recipient, notification, skip={0, 2})`
+reports those messages as skipped ("already delivered") without sending them again.
+
 Validate everything at enqueue time: an error raised there reaches the caller, while an error in
 the worker only reaches the logs.

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Awaitable, Callable, Collection, Iterable
 from typing import Any, Final, TypedDict
 from uuid import UUID, uuid4
 
@@ -14,6 +14,7 @@ from goatnotify.core.results import DeliveryResult, DeliveryStatus, Notification
 from goatnotify.core.retry import RetryPolicy
 
 logger: Final = logging.getLogger("goatnotify")
+ALREADY_DELIVERED: Final = "already delivered"
 
 type Sleep = Callable[[float], Awaitable[None]]
 
@@ -51,7 +52,12 @@ class Notifier:
         self._sleep = sleep
 
     async def notify[R: Notifiable](
-        self, notifiable: R, notification: Notification[R], *, raise_on_failure: bool = True
+        self,
+        notifiable: R,
+        notification: Notification[R],
+        *,
+        raise_on_failure: bool = True,
+        skip: Collection[int] = (),
     ) -> NotificationResult:
         routed = [
             (self._channel_for(message), message) for message in notification.messages(notifiable)
@@ -59,7 +65,7 @@ class Notifier:
         notification_id = uuid4()
         deliveries = await asyncio.gather(
             *(
-                self._deliver(
+                (self._already_delivered if position in skip else self._deliver)(
                     _Scope(
                         notification_id=notification_id,
                         notification=notification,
@@ -69,7 +75,7 @@ class Notifier:
                     ),
                     channel,
                 )
-                for channel, message in routed
+                for position, (channel, message) in enumerate(routed)
             )
         )
         result = NotificationResult(
@@ -105,6 +111,16 @@ class Notifier:
             if channel is not None:
                 return channel
         raise ConfigurationError(f"No channel handles {type(message).__qualname__}")
+
+    async def _already_delivered(self, scope: _Scope, channel: Channel[Any]) -> DeliveryResult:
+        await self._emit(events.Skipped(**scope, attempt=0, reason=ALREADY_DELIVERED))
+        return DeliveryResult(
+            channel=channel.name,
+            message=scope["message"],
+            status=DeliveryStatus.SKIPPED,
+            attempts=0,
+            reason=ALREADY_DELIVERED,
+        )
 
     async def _deliver(self, scope: _Scope, channel: Channel[Any]) -> DeliveryResult:
         policy = channel.retry or self._retry

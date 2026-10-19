@@ -241,3 +241,22 @@ async def test_retry_after_is_capped_by_the_policy() -> None:
 
 def test_the_default_policy_caps_delays_at_five_minutes() -> None:
     assert RetryPolicy().max_delay == 300.0
+
+
+async def test_skipped_positions_are_reported_without_delivery() -> None:
+    received: list[events.Event] = []
+    channel = PingChannel()
+    result = await Notifier([channel], hooks=[received.append]).notify(
+        User(), Pings("a", "b", "c"), skip={0, 2}
+    )
+    assert channel.sent == [Ping("b")]
+    assert [d.status for d in result.deliveries] == [
+        DeliveryStatus.SKIPPED,
+        DeliveryStatus.SENT,
+        DeliveryStatus.SKIPPED,
+    ]
+    assert result.deliveries[0].reason == "already delivered"
+    assert result.deliveries[0].attempts == 0
+    assert [event.name for event in received if event.message == Ping("a")] == [
+        "notification.skipped"
+    ]

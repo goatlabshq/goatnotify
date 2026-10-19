@@ -63,3 +63,22 @@ class NotificationRecord(models.Model):
 
     def __str__(self) -> str:
         return f"{self.kind} for {self.content_type_id}:{self.object_id}"
+
+
+class DeliveryReceipt(models.Model):
+    job_id: models.UUIDField[uuid.UUID, uuid.UUID] = models.UUIDField()
+    position: models.PositiveIntegerField[int, int] = models.PositiveIntegerField()
+    delivered_at: models.DateTimeField[datetime, datetime] = models.DateTimeField(
+        default=timezone.now
+    )
+
+    class Meta:
+        db_table = "goatnotify_delivery_receipt"
+        constraints = (
+            models.UniqueConstraint(
+                fields=("job_id", "position"), name="goatnotify_receipt_unique"
+            ),
+        )
+
+    def __str__(self) -> str:
+        return f"{self.job_id}#{self.position}"

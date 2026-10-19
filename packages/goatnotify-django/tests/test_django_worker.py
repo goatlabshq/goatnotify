@@ -7,8 +7,9 @@ from django.core import mail
 from django.core.management import call_command
 from django.tasks import TaskResult, TaskResultStatus
 from django.tasks.signals import task_enqueued
+from django.test import override_settings
 from goatnotify_testapp.models import Member
-from goatnotify_testapp.notifications import Welcome
+from goatnotify_testapp.notifications import FLAKY, Alert, Welcome, WelcomeWithAlert
 
 from goatnotify import Notifiable, Notification
 from goatnotify.core.queue import NotificationJob
@@ -64,3 +65,30 @@ def test_a_recipient_deleted_before_the_worker_runs_is_skipped(
     assert statuses() == [TaskResultStatus.SUCCESSFUL]
     assert mail.outbox == []
     assert "no longer exists" in caplog.text
+
+
+def retry(result_id: str) -> None:
+    failed = deliver_notification.using(backend="database").get_result(result_id)
+    deliver_notification.using(backend="database").enqueue(*failed.args, **failed.kwargs)
+
+
+@override_settings(GOATNOTIFY_NOTIFIER="goatnotify_testapp.notifications.build_flaky_notifier")
+def test_retrying_a_task_only_redelivers_what_failed() -> None:
+    FLAKY.failures_left, FLAKY.sent = 1, []
+    member = Member.objects.create(email="ada@example.com")
+    enqueue(member, WelcomeWithAlert(plan="pro"))
+    run_worker()
+    assert statuses() == [TaskResultStatus.FAILED]
+    assert len(mail.outbox) == 1
+    assert FLAKY.sent == []
+
+    retry(ENQUEUED[0])
+    run_worker()
+    assert statuses() == [TaskResultStatus.FAILED, TaskResultStatus.SUCCESSFUL]
+    assert len(mail.outbox) == 1
+    assert FLAKY.sent == [Alert("ada@example.com joined")]
+
+    retry(ENQUEUED[1])
+    run_worker()
+    assert len(mail.outbox) == 1
+    assert len(FLAKY.sent) == 1

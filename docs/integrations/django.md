@@ -145,6 +145,19 @@ class Welcome(Notification[Member]):
 ```
 
 Anything else raises `ConfigurationError` when you call `enqueue()`, not later in the worker.
+
+### Retries and deleted recipients
+
+Each queued notification carries a job id. When the worker delivers it, every message that was
+sent (or had nothing to send) gets a `DeliveryReceipt` row. If the task is run again with the
+same arguments, after a failure or by a backend that retries, messages with a receipt are
+reported as `skipped` ("already delivered") and only the failed ones are retried. A process that
+dies between sending and writing the receipt can still deliver a message twice: delivery is at
+least once, never silently lost.
+
+Receipts are never deleted by GoatNotify; prune old rows from `goatnotify_delivery_receipt` with
+your task results. A recipient deleted before the worker runs is logged on the `goatnotify`
+logger and the task ends successfully, without sending anything.
 `DjangoTasksQueue(queue_name=..., priority=..., backend=...)` forwards those options to the task.
 
 Inside a transaction, a worker may run the task before the transaction commits and not find the
