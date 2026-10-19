@@ -25,7 +25,10 @@ dev = [
     "ruff>=0.16.10",
     "twine>=7.0",
 ]
-docs = ["mkdocs-material>=9.7.7"]
+docs = [
+    "mkdocs-llmstxt>=0.5.1",
+    "mkdocs-material>=9.7.7",
+]
 
 [tool.uv]
 exclude-newer = "7 days"
