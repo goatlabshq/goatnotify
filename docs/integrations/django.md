@@ -92,6 +92,19 @@ def build_notifier() -> Notifier:
 The cached notifier is rebuilt when a test overrides `GOATNOTIFY_NOTIFIER`,
 `DEFAULT_FROM_EMAIL`, `MAILERS`, `TASKS` or `TEMPLATES`.
 
+## System checks
+
+`manage.py check` (and every management command) validates the configuration, so mistakes
+surface at startup instead of at the first send:
+
+| Id | Problem |
+|---|---|
+| `goatnotify.E001` | `GOATNOTIFY_NOTIFIER` is not a string |
+| `goatnotify.E002` | `GOATNOTIFY_NOTIFIER` cannot be imported |
+| `goatnotify.E003` | `GOATNOTIFY_NOTIFIER` is not callable |
+| `goatnotify.E004` | `DEFAULT_FROM_EMAIL` is not an email address (default notifier only) |
+| `goatnotify.E005` | `MAILERS` has no `default` mailer (default notifier only) |
+
 ## Recipients
 
 Mix `NotifiableModel` into your models (see [Notifiables](../notifiable.md)).
