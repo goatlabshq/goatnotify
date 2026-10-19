@@ -51,7 +51,8 @@ class DjangoEmailTransport:
         self._mailer = mailer
 
     async def send(self, message: EmailMessage) -> str | None:
-        return await sync_to_async(self._send)(message)
+        # Off the shared sync thread: a slow SMTP server would stall every sync view and ORM call.
+        return await sync_to_async(self._send, thread_sensitive=False)(message)
 
     def _send(self, message: EmailMessage) -> str:
         headers = dict(message.headers)

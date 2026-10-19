@@ -29,6 +29,7 @@ if not settings.configured:
         MAILERS={
             "default": {"BACKEND": "django.core.mail.backends.locmem.EmailBackend"},
             "broken": {"BACKEND": "goatnotify_testapp.mail.BrokenBackend"},
+            "handshake": {"BACKEND": "goatnotify_testapp.mail.HandshakeBackend"},
             "mailpit": {
                 "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
                 "OPTIONS": {"host": SMTP_HOST, "port": SMTP_PORT, "timeout": 10},

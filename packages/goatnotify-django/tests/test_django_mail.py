@@ -1,8 +1,11 @@
+import asyncio
 from collections.abc import Iterable, Mapping
 
 import pytest
+from asgiref.sync import sync_to_async
 from django.core import mail
 from django.core.mail import EmailMultiAlternatives
+from goatnotify_testapp.mail import HandshakeBackend
 from goatnotify_testapp.models import Member
 
 from goatnotify import (
@@ -127,3 +130,12 @@ async def test_a_custom_message_id_is_kept_whatever_its_case() -> None:
     )
     assert message_id == "<custom@goat.dev>"
     assert mail.outbox[0].message().get_all("Message-ID") == ["<custom@goat.dev>"]
+
+
+async def test_sending_does_not_hold_the_thread_sensitive_executor() -> None:
+    HandshakeBackend.released.clear()
+    sending = asyncio.create_task(DjangoEmailTransport(mailer="handshake").send(MESSAGE))
+    await asyncio.sleep(0.05)
+    await sync_to_async(HandshakeBackend.released.set)()
+    await sending
+    assert HandshakeBackend.saw_release
