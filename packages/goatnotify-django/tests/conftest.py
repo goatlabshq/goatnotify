@@ -18,7 +18,12 @@ if not settings.configured:
     # A file database, because sync_to_async threads would each see their own :memory: one.
     settings.configure(
         SECRET_KEY="goatnotify-tests",
-        INSTALLED_APPS=["django.contrib.contenttypes", "goatnotify.django", "goatnotify_testapp"],
+        INSTALLED_APPS=[
+            "django.contrib.contenttypes",
+            "django_tasks_db",
+            "goatnotify.django",
+            "goatnotify_testapp",
+        ],
         DATABASES={
             "default": {
                 "ENGINE": "django.db.backends.sqlite3",
@@ -36,7 +41,10 @@ if not settings.configured:
             },
         },
         DEFAULT_FROM_EMAIL="Goat <noreply@goat.dev>",
-        TASKS={"default": {"BACKEND": "django.tasks.backends.immediate.ImmediateBackend"}},
+        TASKS={
+            "default": {"BACKEND": "django.tasks.backends.immediate.ImmediateBackend"},
+            "database": {"BACKEND": "django_tasks_db.DatabaseBackend"},
+        },
         USE_TZ=True,
         TEMPLATES=[
             {
