@@ -50,3 +50,11 @@ Mailpit service container:
 docker run -d --name goatnotify-mailpit -p 127.0.0.1:11025:1025 -p 127.0.0.1:18025:8025 axllent/mailpit
 MAILPIT_API_URL=http://127.0.0.1:18025 MAILPIT_SMTP_PORT=11025 uv run pytest
 ```
+
+The STARTTLS, implicit TLS and authentication tests need two more Mailpit instances with a
+self-signed certificate (ports 11587/18587 and 11465/18465):
+
+```bash
+scripts/mailpit-tls.sh /tmp/goatnotify-mailpit-tls
+MAILPIT_TLS_DIR=/tmp/goatnotify-mailpit-tls uv run pytest tests/integration/test_mailpit_tls.py
+```
