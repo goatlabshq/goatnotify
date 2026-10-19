@@ -395,12 +395,14 @@ name = "goatnotify-django"
 version = "0.1.0"
 source = { editable = "packages/goatnotify-django" }
 dependencies = [
+    { name = "asgiref" },
     { name = "django" },
     { name = "goatnotify-core" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "asgiref", specifier = ">=3.9.1" },
     { name = "django", specifier = ">=6.1" },
     { name = "goatnotify-core", editable = "packages/goatnotify-core" },
 ]

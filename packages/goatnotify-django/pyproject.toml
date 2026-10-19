@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "goatnotify-core==0.1.0", # x-release-please-version
+    "asgiref>=3.9.1",
     "django>=6.1",
 ]
 
