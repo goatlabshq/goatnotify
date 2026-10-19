@@ -3,6 +3,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+import pytest
 from mailpit import SMTP_HOST, SMTP_PORT, fetch, raw_source, requires_mailpit
 
 from goatnotify import (
@@ -15,6 +16,7 @@ from goatnotify import (
     Message,
     Notification,
     Notifier,
+    PermanentError,
     SmtpTransport,
 )
 from goatnotify.jinja import JinjaRenderer
@@ -124,3 +126,16 @@ async def test_a_notification_renders_jinja_templates_and_reaches_the_inbox(tmp_
     assert received.addresses("To") == ["zoe@example.com"]
     assert received.text("HTML").strip() == "<h1>Welcome &lt;Zoé&gt;</h1>"
     assert received.text("Text").strip() == "Welcome <Zoé>"
+
+
+async def test_starttls_against_a_server_without_it_is_a_permanent_failure() -> None:
+    transport = SmtpTransport(SMTP_HOST, SMTP_PORT, security="starttls", timeout=10)
+    with pytest.raises(PermanentError, match="STARTTLS"):
+        await transport.send(
+            EmailMessage(
+                subject=_subject("No STARTTLS"),
+                sender=Address("noreply@goat.dev"),
+                to=(Address("ada@example.com"),),
+                text="x",
+            )
+        )
