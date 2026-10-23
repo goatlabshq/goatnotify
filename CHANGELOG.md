@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.2.0](https://github.com/goatlabshq/goatnotify/compare/v0.1.0...v0.2.0) (2026-10-23)
+
+
+### Features
+
+* **core:** render mailable subjects from subject_template() ([d582e75](https://github.com/goatlabshq/goatnotify/commit/d582e758e052891f2455e2736963e91e2b0b2ce4))
+* **django:** re-export the common helpers from goatnotify.django ([c42f360](https://github.com/goatlabshq/goatnotify/commit/c42f3603f833fbfd0a09a30168b94ca6bba6993d))
+* **django:** warn when enqueue() would send inline through ImmediateBackend ([947fe4f](https://github.com/goatlabshq/goatnotify/commit/947fe4f8d88207d6a6440f536ffa6f7575f80898))
+
+
+### Bug Fixes
+
+* **ci:** claim every pending PyPI project before uploading ([c083f60](https://github.com/goatlabshq/goatnotify/commit/c083f604ccf043dc2b8a7dbb8432758d35b2b39e))
+* **ci:** publish without attestations from the reusable release workflow ([4e7ae34](https://github.com/goatlabshq/goatnotify/commit/4e7ae3478cfcebb5844d8b7fa6ec22465b47921a))
+* **deps:** upgrade certifi to 2026.10.19 for PYSEC-2026-4320 ([2b155f2](https://github.com/goatlabshq/goatnotify/commit/2b155f242dd50340fe20ebd15d68ed859e4d080c))
+* **django:** resolve the lazy re-exports without a dynamic import ([ecf2420](https://github.com/goatlabshq/goatnotify/commit/ecf24209452cfaeb1ea9271b9f27141969da6314))
+
+
+### Documentation
+
+* drop blocktranslate from the Django subject template example ([5d56919](https://github.com/goatlabshq/goatnotify/commit/5d56919dbe28af73df30c406038720d3ce618cbf))
+
 ## 0.1.0 (2026-10-19)
 
 

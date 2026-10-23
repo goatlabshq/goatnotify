@@ -1,6 +1,6 @@
 [project]
 name = "goatnotify"
-version = "0.1.0" # x-release-please-version
+version = "0.2.0" # x-release-please-version
 description = "A modern, type-safe, framework-agnostic notification system for Python."
 readme = "README.md"
 license = "MIT"
@@ -16,13 +16,13 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "goatnotify-core==0.1.0", # x-release-please-version
+    "goatnotify-core==0.2.0", # x-release-please-version
 ]
 
 [project.optional-dependencies]
-jinja = ["goatnotify-jinja==0.1.0"] # x-release-please-version
-django = ["goatnotify-django==0.1.0"] # x-release-please-version
-fastapi = ["goatnotify-fastapi==0.1.0"] # x-release-please-version
+jinja = ["goatnotify-jinja==0.2.0"] # x-release-please-version
+django = ["goatnotify-django==0.2.0"] # x-release-please-version
+fastapi = ["goatnotify-fastapi==0.2.0"] # x-release-please-version
 
 [project.urls]
 Homepage = "https://github.com/goatlabshq/goatnotify"

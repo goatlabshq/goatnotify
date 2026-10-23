@@ -1,6 +1,6 @@
 [project]
 name = "goatnotify-django"
-version = "0.1.0" # x-release-please-version
+version = "0.2.0" # x-release-please-version
 description = "Django integration for GoatNotify: email backend, templates, ORM store and Django Tasks."
 readme = "README.md"
 license = "MIT"
@@ -17,7 +17,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "goatnotify-core==0.1.0", # x-release-please-version
+    "goatnotify-core==0.2.0", # x-release-please-version
     "asgiref>=3.9.1",
     "django>=6.1",
 ]

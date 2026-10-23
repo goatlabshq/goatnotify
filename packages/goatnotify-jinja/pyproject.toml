@@ -1,6 +1,6 @@
 [project]
 name = "goatnotify-jinja"
-version = "0.1.0" # x-release-please-version
+version = "0.2.0" # x-release-please-version
 description = "Jinja2 template renderer for GoatNotify."
 readme = "README.md"
 license = "MIT"
@@ -16,7 +16,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "goatnotify-core==0.1.0", # x-release-please-version
+    "goatnotify-core==0.2.0", # x-release-please-version
     "jinja2>=3.1",
 ]
 

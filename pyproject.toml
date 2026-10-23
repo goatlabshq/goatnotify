@@ -1,6 +1,6 @@
 [project]
 name = "goatnotify-workspace"
-version = "0.1.0"
+version = "0.2.0"
 description = "Development workspace for the GoatNotify packages."
 readme = "README.md"
 license = "MIT"
