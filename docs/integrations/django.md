@@ -46,7 +46,7 @@ python manage.py migrate goatnotify
 | queue | `DjangoTasksQueue` |
 
 ```python
-from goatnotify.django.notifier import get_notifier
+from goatnotify.django import get_notifier
 
 
 async def signup(request: HttpRequest) -> HttpResponse:
@@ -58,10 +58,10 @@ async def signup(request: HttpRequest) -> HttpResponse:
 ## Synchronous code
 
 In synchronous views, signal handlers and management commands, use the helpers of
-`goatnotify.django.notifier` instead of `Notifier.notify_sync()`:
+`goatnotify.django` instead of `Notifier.notify_sync()`:
 
 ```python
-from goatnotify.django.notifier import enqueue_sync, notify_sync
+from goatnotify.django import enqueue_sync, notify_sync
 
 
 def signup_sync(request: HttpRequest) -> HttpResponse:

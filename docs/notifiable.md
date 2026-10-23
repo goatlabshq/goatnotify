@@ -54,7 +54,7 @@ Mix in `NotifiableModel`: it routes the email channel to the model's `email` fie
 ```python
 from django.db import models
 
-from goatnotify.django.notifiable import NotifiableModel
+from goatnotify.django import NotifiableModel
 
 
 class Member(NotifiableModel, models.Model):
