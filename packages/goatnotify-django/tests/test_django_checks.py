@@ -2,6 +2,9 @@ import pytest
 from django.core import checks
 from django.test import override_settings
 
+WORKER_TASKS = {"default": {"BACKEND": "django_tasks_db.DatabaseBackend"}}
+DUMMY_TASKS = {"default": {"BACKEND": "django.tasks.backends.dummy.DummyBackend"}}
+
 
 def _goatnotify_errors() -> list[str]:
     return sorted(
@@ -11,8 +14,18 @@ def _goatnotify_errors() -> list[str]:
     )
 
 
-def test_the_test_configuration_is_valid() -> None:
-    assert _goatnotify_errors() == []
+def test_a_worker_task_backend_is_valid() -> None:
+    with override_settings(TASKS=WORKER_TASKS):
+        assert _goatnotify_errors() == []
+
+
+def test_an_immediate_task_backend_is_reported() -> None:
+    assert _goatnotify_errors() == ["goatnotify.W001"]
+
+
+def test_a_dummy_task_backend_is_not_reported() -> None:
+    with override_settings(TASKS=DUMMY_TASKS):
+        assert _goatnotify_errors() == []
 
 
 @pytest.mark.parametrize(
@@ -38,7 +51,7 @@ def test_the_test_configuration_is_valid() -> None:
 def test_invalid_settings_are_reported_by_manage_check(
     overrides: dict[str, object], expected: str
 ) -> None:
-    with override_settings(**overrides):
+    with override_settings(**{"TASKS": WORKER_TASKS, **overrides}):
         assert _goatnotify_errors() == [expected]
 
 

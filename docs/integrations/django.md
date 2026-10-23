@@ -9,7 +9,7 @@ The integration requires Django 6.1 or newer.
 ## Setup
 
 ```python
-INSTALLED_APPS = ["django.contrib.contenttypes", "goatnotify.django", ...]
+INSTALLED_APPS = ["django.contrib.contenttypes", "django_tasks_db", "goatnotify.django", ...]
 
 MAILERS = {
     "default": {"BACKEND": "django.core.mail.backends.smtp.EmailBackend", "OPTIONS": {...}},
@@ -17,9 +17,16 @@ MAILERS = {
 DEFAULT_FROM_EMAIL = "Goat <noreply@example.com>"
 
 TASKS = {
-    "default": {"BACKEND": "django.tasks.backends.immediate.ImmediateBackend"},
+    "default": {"BACKEND": "django_tasks_db.DatabaseBackend"},
 }
 ```
+
+`enqueue()` needs a `TASKS` backend with a worker, such as
+[django-tasks-db](https://pypi.org/project/django-tasks-db/). Django itself only
+ships `ImmediateBackend`, which runs the task inline, and `DummyBackend`, which never runs it.
+With Celery, RQ or another task system, write a small queue instead (see
+[Other task systems](../queues.md#other-task-systems)) and return it from
+[your own notifier](#the-notifier).
 
 Then create the notification table:
 
@@ -104,6 +111,10 @@ surface at startup instead of at the first send:
 | `goatnotify.E003` | `GOATNOTIFY_NOTIFIER` is not callable |
 | `goatnotify.E004` | `DEFAULT_FROM_EMAIL` is not an email address (default notifier only) |
 | `goatnotify.E005` | `MAILERS` has no `default` mailer (default notifier only) |
+| `goatnotify.W001` | the default `TASKS` backend is `ImmediateBackend`, so `enqueue()` sends inline (default notifier only) |
+
+Silence `goatnotify.W001` with `SILENCED_SYSTEM_CHECKS` when sending inline is intended, for
+example in tests.
 
 ## Recipients
 
