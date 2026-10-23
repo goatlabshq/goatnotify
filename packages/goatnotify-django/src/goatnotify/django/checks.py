@@ -1,7 +1,11 @@
 from django.conf import settings
 from django.core.checks import CheckMessage, Error
+from django.core.checks import Warning as CheckWarning
 from django.core.mail import mailers
 from django.core.mail.handler import DEFAULT_MAILER_ALIAS
+from django.tasks import DEFAULT_TASK_BACKEND_ALIAS, task_backends
+from django.tasks.backends.immediate import ImmediateBackend
+from django.tasks.exceptions import InvalidTaskBackend
 from django.utils.module_loading import import_string
 from goatnotify.core.errors import InvalidMessageError
 from goatnotify.core.mail.message import Address
@@ -58,4 +62,22 @@ def _default_notifier_errors() -> list[CheckMessage]:
                 id="goatnotify.E005",
             )
         )
+    if _default_task_backend_is_immediate():
+        errors.append(
+            CheckWarning(
+                "The default TASKS backend is ImmediateBackend: enqueue() sends notifications "
+                "inline instead of queueing them.",
+                hint="Configure a worker backend for TASKS['default'], or set GOATNOTIFY_NOTIFIER "
+                "to a factory with another queue. Silence goatnotify.W001 if inline is intended.",
+                id="goatnotify.W001",
+            )
+        )
     return errors
+
+
+def _default_task_backend_is_immediate() -> bool:
+    try:
+        backend = task_backends[DEFAULT_TASK_BACKEND_ALIAS]
+    except InvalidTaskBackend:
+        return False
+    return isinstance(backend, ImmediateBackend)
