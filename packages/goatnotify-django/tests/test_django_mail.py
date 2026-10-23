@@ -101,6 +101,24 @@ async def test_django_templates_render_mailables() -> None:
     )
 
 
+async def test_django_templates_render_the_subject() -> None:
+    class Welcome(Mailable):
+        def subject_template(self) -> str | None:
+            return "emails/welcome_subject.txt"
+
+        def text(self) -> str | None:
+            return "Hi"
+
+        def context(self) -> Mapping[str, object]:
+            return {"name": "Zoé O'Hara"}
+
+    mailer = Mailer(
+        DjangoEmailTransport(), sender="noreply@goat.dev", renderer=DjangoTemplateRenderer()
+    )
+    await mailer.send(Welcome(), to=["zoe@example.com"])
+    assert [sent.subject for sent in mail.outbox] == ["Welcome Zoé O'Hara"]
+
+
 async def test_inline_images_keep_their_content_id() -> None:
     await DjangoEmailTransport().send(
         EmailMessage(

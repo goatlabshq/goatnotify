@@ -26,6 +26,9 @@ class Mailable(Message):
     def text(self) -> str | None:
         return None
 
+    def subject_template(self) -> str | None:
+        return None
+
     def template(self) -> str | None:
         return None
 

@@ -12,6 +12,7 @@ from mailpit import SMTP_HOST, SMTP_PORT
 TEMPLATES = {
     "emails/welcome.html": "<p>Welcome {{ name }}</p>",
     "emails/welcome.txt": "Welcome {{ name }}",
+    "emails/welcome_subject.txt": "{% autoescape off %}Welcome {{ name }}{% endautoescape %}\n",
 }
 
 if not settings.configured:

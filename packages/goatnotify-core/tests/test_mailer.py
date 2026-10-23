@@ -105,6 +105,50 @@ async def test_a_mailable_needs_a_subject_and_a_body() -> None:
         await mailer.render(NoBody(), to=["a@b.c"])
 
 
+class TemplatedSubject(Raw):
+    subject = ""
+
+    def subject_template(self) -> str | None:
+        return "subject.txt"
+
+    def context(self) -> Mapping[str, object]:
+        return {"name": "Zoé"}
+
+
+class SubjectRenderer:
+    def __init__(self, source: str) -> None:
+        self.source = source
+
+    async def render(self, template: str, context: Mapping[str, object]) -> str:
+        return self.source.format(**context)
+
+
+async def test_the_subject_template_is_rendered_on_a_single_line() -> None:
+    renderer = SubjectRenderer("  Welcome\n {name}\n")
+    mailer = Mailer(MemoryTransport(), sender="noreply@goat.dev", renderer=renderer)
+    message = await mailer.render(TemplatedSubject())
+    assert message.subject == "Welcome Zoé"
+
+
+async def test_an_explicit_subject_wins_over_the_subject_template() -> None:
+    class Both(TemplatedSubject):
+        subject = "Explicit"
+
+    mailer = Mailer(MemoryTransport(), sender="noreply@goat.dev", renderer=SubjectRenderer("x"))
+    assert (await mailer.render(Both())).subject == "Explicit"
+
+
+async def test_a_blank_subject_template_is_rejected() -> None:
+    mailer = Mailer(MemoryTransport(), sender="noreply@goat.dev", renderer=SubjectRenderer(" \n"))
+    with pytest.raises(InvalidMessageError, match="subject"):
+        await mailer.render(TemplatedSubject())
+
+
+async def test_a_subject_template_without_renderer_is_a_configuration_error() -> None:
+    with pytest.raises(ConfigurationError, match="TemplateRenderer"):
+        await Mailer(MemoryTransport(), sender="noreply@goat.dev").render(TemplatedSubject())
+
+
 async def test_explicit_recipients_and_sender_override_defaults() -> None:
     class Custom(Raw):
         sender = "Billing <billing@goat.dev>"
