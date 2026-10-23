@@ -48,7 +48,7 @@ Django escapes HTML in every template, plain-text ones included. Wrap subject an
 in `{% autoescape off %}`, as Django's own password reset emails do:
 
 ```django
-{% load i18n %}{% autoescape off %}{% blocktranslate %}Invoice {{ number }}{% endblocktranslate %}{% endautoescape %}
+{% autoescape off %}Invoice {{ number }} for {{ customer.name }}{% endautoescape %}
 ```
 
 ## A custom renderer
