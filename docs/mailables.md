@@ -11,14 +11,15 @@ from goatnotify import Attachment, Mailable
 
 
 class InvoiceMail(Mailable):
-    subject = "Your invoice"
     reply_to = ("billing@example.com",)
     headers = MappingProxyType({"X-Campaign": "invoices"})
     metadata = MappingProxyType({"category": "billing"})
 
     def __init__(self, invoice: Invoice) -> None:
         self.invoice = invoice
-        self.subject = f"Invoice {invoice.number}"
+
+    def subject_template(self) -> str | None:
+        return "emails/invoice_subject.txt"
 
     def template(self) -> str | None:
         return "emails/invoice.html"
@@ -37,22 +38,25 @@ class InvoiceMail(Mailable):
 
 | Member | Type | Default |
 |---|---|---|
-| `subject` | `str` | required: an empty subject raises `InvalidMessageError` |
+| `subject` | `str` | `""`; a mailable needs `subject` or `subject_template()` |
 | `sender` | `str \| Address \| None` | the mailer's sender |
 | `to`, `cc`, `bcc`, `reply_to` | `Sequence[str \| Address]` | `()`; an empty `to` uses the recipient's `"email"` route |
 | `headers` | `Mapping[str, str]` | empty |
 | `metadata` | `Mapping[str, str]` | empty; tags for providers, never sent as headers |
 | `attachments()` | `Sequence[Attachment]` | `()` |
 | `html()`, `text()` | `str \| None` | `None` |
-| `template()`, `text_template()` | `str \| None` | `None` |
+| `subject_template()`, `template()`, `text_template()` | `str \| None` | `None` |
 | `context()` | `Mapping[str, object]` | empty |
 
 Addresses accept `"ada@example.com"`, `"Ada Lovelace <ada@example.com>"` or an `Address`.
 
-## Body precedence
+## Subject and body precedence
 
-- `html()` wins over `template()`, and `text()` wins over `text_template()`.
+- `subject` wins over `subject_template()`, `html()` wins over `template()`, and `text()` wins
+  over `text_template()`.
 - Templates are rendered with `context()` by the mailer's [template renderer](templates.md).
+- A rendered subject is joined on a single line, so the template file may end with a newline.
+  An empty subject raises `InvalidMessageError`.
 - At least one body is required; a template without a configured renderer raises
   `ConfigurationError`.
 

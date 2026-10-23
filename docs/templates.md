@@ -8,8 +8,8 @@ class TemplateRenderer(Protocol):
     async def render(self, template: str, context: Mapping[str, object]) -> str: ...
 ```
 
-Pass a renderer to the `Mailer`; mailables then name templates in `template()` and
-`text_template()`.
+Pass a renderer to the `Mailer`; mailables then name templates in `subject_template()`,
+`template()` and `text_template()`.
 
 ## Jinja2
 
@@ -43,6 +43,13 @@ renderer = DjangoTemplateRenderer()  # or DjangoTemplateRenderer(using="jinja2")
 ```
 
 It calls `render_to_string()` through `sync_to_async`, so it uses your `TEMPLATES` setting.
+
+Django escapes HTML in every template, plain-text ones included. Wrap subject and text templates
+in `{% autoescape off %}`, as Django's own password reset emails do:
+
+```django
+{% load i18n %}{% autoescape off %}{% blocktranslate %}Invoice {{ number }}{% endblocktranslate %}{% endautoescape %}
+```
 
 ## A custom renderer
 

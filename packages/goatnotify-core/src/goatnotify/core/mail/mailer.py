@@ -20,9 +20,10 @@ class Mailer:
         self._renderer = renderer
 
     async def render(self, mailable: Mailable, *, to: Sequence[AddressLike] = ()) -> EmailMessage:
-        if not mailable.subject:
-            raise InvalidMessageError(f"{type(mailable).__qualname__} has no subject")
         context = mailable.context()
+        subject = mailable.subject or await self._render_subject(mailable, context)
+        if not subject:
+            raise InvalidMessageError(f"{type(mailable).__qualname__} has no subject")
         html = mailable.html()
         if html is None:
             html = await self._render(mailable.template(), context)
@@ -30,7 +31,7 @@ class Mailer:
         if text is None:
             text = await self._render(mailable.text_template(), context)
         return EmailMessage(
-            subject=mailable.subject,
+            subject=subject,
             sender=self._sender if mailable.sender is None else Address.parse(mailable.sender),
             to=_addresses(to or mailable.to),
             cc=_addresses(mailable.cc),
@@ -45,6 +46,10 @@ class Mailer:
 
     async def send(self, mailable: Mailable, *, to: Sequence[AddressLike] = ()) -> str | None:
         return await self._transport.send(await self.render(mailable, to=to))
+
+    async def _render_subject(self, mailable: Mailable, context: Mapping[str, object]) -> str:
+        rendered = await self._render(mailable.subject_template(), context)
+        return "" if rendered is None else " ".join(rendered.split())
 
     async def _render(self, template: str | None, context: Mapping[str, object]) -> str | None:
         if template is None:
