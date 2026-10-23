@@ -389,7 +389,7 @@ wheels = [
 
 [[package]]
 name = "goatnotify"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/goatnotify" }
 dependencies = [
     { name = "goatnotify-core" },
@@ -417,12 +417,12 @@ provides-extras = ["jinja", "django", "fastapi"]
 
 [[package]]
 name = "goatnotify-core"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/goatnotify-core" }
 
 [[package]]
 name = "goatnotify-django"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/goatnotify-django" }
 dependencies = [
     { name = "asgiref" },
@@ -439,7 +439,7 @@ requires-dist = [
 
 [[package]]
 name = "goatnotify-fastapi"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/goatnotify-fastapi" }
 dependencies = [
     { name = "fastapi" },
@@ -454,7 +454,7 @@ requires-dist = [
 
 [[package]]
 name = "goatnotify-jinja"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/goatnotify-jinja" }
 dependencies = [
     { name = "goatnotify-core" },
@@ -469,7 +469,7 @@ requires-dist = [
 
 [[package]]
 name = "goatnotify-workspace"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]

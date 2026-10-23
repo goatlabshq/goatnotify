@@ -13,7 +13,37 @@
         "packages/goatnotify-core/pyproject.toml",
         "packages/goatnotify-jinja/pyproject.toml",
         "packages/goatnotify-django/pyproject.toml",
-        "packages/goatnotify-fastapi/pyproject.toml"
+        "packages/goatnotify-fastapi/pyproject.toml",
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-core')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-django')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-fastapi')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-jinja')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-workspace')].version"
+        }
       ]
     }
   }
