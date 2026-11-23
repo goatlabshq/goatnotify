@@ -44,24 +44,115 @@ shutdown), and a durable queue for anything that must survive a restart.
 `DjangoTasksQueue` enqueues a `django.tasks` task. See [Django](integrations/django.md) for its
 serialization rules.
 
+## Celery, Dramatiq and RQ
+
+For Django projects that already run one of these task systems, `goatnotify-celery`,
+`goatnotify-dramatiq` and `goatnotify-rq` each ship a queue and its worker task. They serialize
+jobs like `DjangoTasksQueue` and share its delivery receipts (the `goatnotify_delivery_receipt`
+table): when the task system runs a job again, after a retry or a redelivery, messages already
+sent or skipped are not sent twice.
+
+Hand the queue to `default_notifier()` from [your own notifier factory](integrations/django.md#the-notifier):
+
+```python
+# settings.py
+GOATNOTIFY_NOTIFIER = "myproject.notifications.build_notifier"
+```
+
+### Celery
+
+```bash
+pip install "goatnotify[django,celery]"
+```
+
+```python
+# settings.py
+INSTALLED_APPS = [..., "goatnotify.django", "goatnotify.celery"]
+
+# myproject/notifications.py
+from goatnotify import Notifier
+from goatnotify.celery import CeleryQueue
+from goatnotify.django.notifier import default_notifier
+from myproject.celery import app
+
+
+def build_notifier() -> Notifier:
+    return default_notifier(queue=CeleryQueue(app, queue="notifications", priority=None))
+```
+
+`app.autodiscover_tasks()` registers the `goatnotify.deliver` task through the
+`goatnotify.celery` app. The task acknowledges late and is redelivered if its worker dies.
+Celery does not retry a failed task on its own; a task that is re-sent, by hand or by a
+monitoring tool, only delivers what failed.
+
+### Dramatiq
+
+```bash
+pip install "goatnotify[django,dramatiq]"
+```
+
+```python
+# settings.py
+INSTALLED_APPS = [..., "django_dramatiq", "goatnotify.django", "goatnotify.dramatiq"]
+
+# myproject/notifications.py
+from goatnotify import Notifier
+from goatnotify.django.notifier import default_notifier
+from goatnotify.dramatiq import DramatiqQueue
+
+
+def build_notifier() -> Notifier:
+    return default_notifier(queue=DramatiqQueue(queue_name="notifications", max_retries=5))
+```
+
+[django_dramatiq](https://pypi.org/project/django-dramatiq/) discovers the `goatnotify.deliver`
+actor in `goatnotify.dramatiq.tasks`. Dramatiq retries a failed message with backoff (20 times
+unless `max_retries` says otherwise), and every retry only delivers what failed. Enqueueing
+before the actor is registered raises `ConfigurationError`.
+
+### RQ
+
+```bash
+pip install "goatnotify[django,rq]"
+```
+
+```python
+# myproject/notifications.py
+from redis import Redis
+from rq import Retry
+
+from goatnotify import Notifier
+from goatnotify.django.notifier import default_notifier
+from goatnotify.rq import RQQueue
+
+
+def build_notifier() -> Notifier:
+    queue = RQQueue(Redis(), queue="notifications", retry=Retry(max=3, interval=[10, 60, 300]))
+    return default_notifier(queue=queue)
+```
+
+The worker runs `goatnotify.rq.tasks.deliver_notification`, so it needs Django set up, as
+[django-rq](https://pypi.org/project/django-rq/)'s `rqworker` command does. No app has to be
+added to `INSTALLED_APPS`.
+
 ## Other task systems
 
-Adapters for Celery, RQ, Arq or Dramatiq follow the same shape: serialize at enqueue time,
+Adapters for Arq or another task system follow the same shape: serialize at enqueue time,
 rebuild and `notify()` in the worker.
 
 ```python
-@celery_app.task
-def deliver(user_id: int, plan: str) -> None:
-    user = load_user(user_id)
-    build_notifier().notify_sync(user, Welcome(plan=plan))
+@arq_task
+async def deliver(ctx: dict[str, object], user_id: int, plan: str) -> None:
+    user = await load_user(user_id)
+    await build_notifier().notify(user, Welcome(plan=plan))
 
 
-class CeleryQueue:
+class ArqQueue:
     async def enqueue[R: Notifiable](self, job: NotificationJob[R]) -> None:
         user, notification = job.notifiable, job.notification
         if not isinstance(user, User) or not isinstance(notification, Welcome):
-            raise ConfigurationError("CeleryQueue only knows how to send Welcome to users")
-        deliver.delay(user.id, notification.plan)
+            raise ConfigurationError("ArqQueue only knows how to send Welcome to users")
+        await redis.enqueue_job("deliver", user.id, notification.plan)
 ```
 
 To make your own worker's retries idempotent, persist which positions of `messages()` were

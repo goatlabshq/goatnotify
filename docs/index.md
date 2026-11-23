@@ -32,7 +32,7 @@ name and a `to_<channel>()` method: a `Mailable` goes to the `EmailChannel`, a
 
 ```bash
 pip install goatnotify              # the core
-pip install "goatnotify[django]"    # or [fastapi], [jinja]
+pip install "goatnotify[django]"    # or [fastapi], [jinja], [celery], [dramatiq], [rq]
 ```
 
 Next: [Getting started](getting-started.md).
