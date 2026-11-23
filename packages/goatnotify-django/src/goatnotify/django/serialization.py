@@ -9,10 +9,19 @@ from django.db import models
 from goatnotify.core._json import JsonValue
 from goatnotify.core.errors import ConfigurationError
 from goatnotify.core.notification import Notifiable, Notification
+from goatnotify.core.queue import NotificationJob
 
 MODEL_TAG: Final = "model"
 JSON_TAG: Final = "json"
 JSON_SCALARS: Final = (str, int, float, bool, type(None))
+
+type Payload = dict[str, JsonValue]
+
+
+def dump_job[R: Notifiable](job: NotificationJob[R], *, queue: str) -> tuple[Payload, Payload]:
+    if not isinstance(job.notifiable, models.Model):
+        raise ConfigurationError(f"{queue} needs a Django model instance as notifiable")
+    return dump_model(job.notifiable), dump_notification(job.notification)
 
 
 def dump_model(instance: models.Model) -> dict[str, JsonValue]:
@@ -41,7 +50,7 @@ def dump_notification(notification: Notification[Any]) -> dict[str, JsonValue]:
     cls = type(notification)
     if not dataclasses.is_dataclass(notification) or "<locals>" in cls.__qualname__:
         raise ConfigurationError(
-            f"{cls.__qualname__} must be a module-level dataclass to be queued with Django Tasks"
+            f"{cls.__qualname__} must be a module-level dataclass to be queued"
         )
     fields: dict[str, JsonValue] = {}
     for field in dataclasses.fields(notification):
