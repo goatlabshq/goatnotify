@@ -23,6 +23,9 @@ dependencies = [
 jinja = ["goatnotify-jinja==0.2.0"] # x-release-please-version
 django = ["goatnotify-django==0.2.0"] # x-release-please-version
 fastapi = ["goatnotify-fastapi==0.2.0"] # x-release-please-version
+celery = ["goatnotify-celery==0.2.0"] # x-release-please-version
+dramatiq = ["goatnotify-dramatiq==0.2.0"] # x-release-please-version
+rq = ["goatnotify-rq==0.2.0"] # x-release-please-version
 
 [project.urls]
 Homepage = "https://github.com/goatlabshq/goatnotify"

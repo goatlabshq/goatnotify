@@ -14,10 +14,18 @@
         "packages/goatnotify-jinja/pyproject.toml",
         "packages/goatnotify-django/pyproject.toml",
         "packages/goatnotify-fastapi/pyproject.toml",
+        "packages/goatnotify-celery/pyproject.toml",
+        "packages/goatnotify-dramatiq/pyproject.toml",
+        "packages/goatnotify-rq/pyproject.toml",
         {
           "type": "toml",
           "path": "uv.lock",
           "jsonpath": "$.package[?(@.name.value=='goatnotify')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-celery')].version"
         },
         {
           "type": "toml",
@@ -32,12 +40,22 @@
         {
           "type": "toml",
           "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-dramatiq')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
           "jsonpath": "$.package[?(@.name.value=='goatnotify-fastapi')].version"
         },
         {
           "type": "toml",
           "path": "uv.lock",
           "jsonpath": "$.package[?(@.name.value=='goatnotify-jinja')].version"
+        },
+        {
+          "type": "toml",
+          "path": "uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='goatnotify-rq')].version"
         },
         {
           "type": "toml",

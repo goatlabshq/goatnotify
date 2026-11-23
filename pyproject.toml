@@ -15,8 +15,13 @@ dev = [
     "goatnotify-jinja",
     "goatnotify-django",
     "goatnotify-fastapi",
+    "goatnotify-celery",
+    "goatnotify-dramatiq",
+    "goatnotify-rq",
+    "celery-types>=0.26",
     "django-stubs>=6.1.2",
     "django-tasks-db>=0.13.0",
+    "fakeredis>=2.40",
     "httpx2>=2.13.1",
     "lefthook>=2.2.1",
     "pyright[nodejs]>=1.1.414",
@@ -45,6 +50,9 @@ goatnotify-core = { workspace = true }
 goatnotify-jinja = { workspace = true }
 goatnotify-django = { workspace = true }
 goatnotify-fastapi = { workspace = true }
+goatnotify-celery = { workspace = true }
+goatnotify-dramatiq = { workspace = true }
+goatnotify-rq = { workspace = true }
 
 [tool.ruff]
 target-version = "py314"

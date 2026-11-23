@@ -8,6 +8,9 @@ PORTIONS = (
     "goatnotify.jinja",
     "goatnotify.django",
     "goatnotify.fastapi",
+    "goatnotify.celery",
+    "goatnotify.dramatiq",
+    "goatnotify.rq",
 )
 
 
