@@ -9,9 +9,10 @@ from django.test import override_settings
 from goatnotify_testapp.models import Member
 from goatnotify_testapp.notifications import MEMORY, Tagged, Tier, Welcome
 
-from goatnotify import ConfigurationError, Message, Notification
+from goatnotify import AsyncioQueue, ConfigurationError, Message, Notification
 from goatnotify.django.models import NotificationRecord
-from goatnotify.django.notifier import get_notifier
+from goatnotify.django.notifier import default_notifier, get_notifier
+from goatnotify.django.queue import DjangoTasksQueue
 from goatnotify.django.serialization import (
     dump_model,
     dump_notification,
@@ -115,3 +116,9 @@ def test_only_installed_apps_can_be_imported_from_a_payload() -> None:
     with pytest.raises(ConfigurationError, match="installed app"):
         load_notification({"class": "this:x", "fields": {}})
     assert "this" not in sys.modules
+
+
+def test_the_default_notifier_queues_with_django_tasks_unless_given_a_queue() -> None:
+    assert isinstance(default_notifier().queue, DjangoTasksQueue)
+    queue = AsyncioQueue()
+    assert default_notifier(queue=queue).queue is queue
