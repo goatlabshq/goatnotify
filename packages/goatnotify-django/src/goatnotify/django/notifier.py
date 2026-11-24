@@ -12,6 +12,7 @@ from goatnotify.core.errors import ConfigurationError
 from goatnotify.core.mail.mailer import Mailer
 from goatnotify.core.notification import Notifiable, Notification
 from goatnotify.core.notifier import Notifier
+from goatnotify.core.queue import Queue
 from goatnotify.core.results import NotificationResult
 from goatnotify.django.mail import DjangoEmailTransport
 from goatnotify.django.queue import DjangoTasksQueue
@@ -23,7 +24,7 @@ WATCHED_SETTINGS: Final = frozenset(
 )
 
 
-def default_notifier() -> Notifier:
+def default_notifier(*, queue: Queue | None = None) -> Notifier:
     mailer = Mailer(
         DjangoEmailTransport(),
         sender=settings.DEFAULT_FROM_EMAIL,
@@ -31,7 +32,7 @@ def default_notifier() -> Notifier:
     )
     return Notifier(
         [EmailChannel(mailer), DatabaseChannel(DjangoNotificationStore()), WebhookChannel()],
-        queue=DjangoTasksQueue(),
+        queue=DjangoTasksQueue() if queue is None else queue,
     )
 
 

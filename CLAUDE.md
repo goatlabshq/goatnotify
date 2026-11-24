@@ -8,6 +8,9 @@ uv workspace of independently published packages sharing the `goatnotify` import
   import `django`, `fastapi`, `starlette`, `jinja2`, `sqlalchemy`, `celery`, `httpx`, `pydantic`
   or `asgiref`; `tests/integration/test_isolation.py` enforces it.
 - `packages/goatnotify-{jinja,django,fastapi}`: optional adapters.
+- `packages/goatnotify-{celery,dramatiq,rq}`: Django-only queues. They reuse the serialization
+  and delivery receipts of `goatnotify.django.delivery`; only the enqueue call and the worker task
+  differ.
 - `packages/goatnotify`: facade distribution. It alone owns `goatnotify/__init__.py`; every other
   package is a namespace portion. `pkgutil.extend_path` in that file makes editable installs work.
 

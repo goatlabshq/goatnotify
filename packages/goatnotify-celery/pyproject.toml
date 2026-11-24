@@ -1,0 +1,41 @@
+[project]
+name = "goatnotify-celery"
+version = "0.2.0" # x-release-please-version
+description = "Celery queue for GoatNotify, with delivery receipts that make retries idempotent."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Louis Midson LAJEANTY", email = "midsonlajeanty@proton.me" }]
+requires-python = ">=3.14"
+keywords = ["notifications", "email", "celery", "queue", "asyncio", "typed"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Celery",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+dependencies = [
+    "goatnotify-core==0.2.0", # x-release-please-version
+    "goatnotify-django==0.2.0", # x-release-please-version
+    "celery>=5.5",
+    "django>=6.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/goatlabshq/goatnotify"
+Documentation = "https://goatlabshq.github.io/goatnotify/"
+Issues = "https://github.com/goatlabshq/goatnotify/issues"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "goatnotify.celery"
+
+[tool.uv.sources]
+goatnotify-core = { workspace = true }
+goatnotify-django = { workspace = true }

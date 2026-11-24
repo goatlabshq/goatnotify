@@ -35,9 +35,10 @@ plugins:
         A notification yields typed messages (Mailable, DatabaseMessage, WebhookMessage or your own)
         and the type of each message selects the channel that delivers it, with retries, hooks and
         structured results. The core depends only on the standard library; optional adapters cover
-        Django (email backend, templates, ORM store, Django Tasks), FastAPI and Jinja2. Python 3.14
+        Django (email backend, templates, ORM store, Django Tasks), Celery, Dramatiq and RQ
+        queues with delivery receipts, FastAPI and Jinja2. Python 3.14
         or newer is required. Install with `pip install goatnotify` or
-        `pip install "goatnotify[django]"` (also `[fastapi]`, `[jinja]`).
+        `pip install "goatnotify[django]"` (also `[fastapi]`, `[jinja]`, `[celery]`, `[dramatiq]`, `[rq]`).
       sections:
         Getting started:
           - index.md

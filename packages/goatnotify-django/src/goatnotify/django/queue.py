@@ -1,10 +1,8 @@
 from uuid import uuid4
 
-from django.db import models
-from goatnotify.core.errors import ConfigurationError
 from goatnotify.core.notification import Notifiable
 from goatnotify.core.queue import NotificationJob
-from goatnotify.django.serialization import dump_model, dump_notification
+from goatnotify.django.serialization import dump_job
 from goatnotify.django.tasks import deliver_notification
 
 
@@ -21,10 +19,7 @@ class DjangoTasksQueue:
         self._backend = backend
 
     async def enqueue[R: Notifiable](self, job: NotificationJob[R]) -> None:
-        if not isinstance(job.notifiable, models.Model):
-            raise ConfigurationError("DjangoTasksQueue needs a Django model instance as notifiable")
-        notifiable = dump_model(job.notifiable)
-        notification = dump_notification(job.notification)
+        notifiable, notification = dump_job(job, queue=type(self).__name__)
         task = deliver_notification.using(
             queue_name=self._queue_name, priority=self._priority, backend=self._backend
         )

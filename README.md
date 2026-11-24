@@ -16,7 +16,7 @@ of each message decides which channel delivers it, so Pyright checks the whole p
 
 ```bash
 pip install goatnotify              # the core
-pip install "goatnotify[django]"    # or [fastapi], [jinja]
+pip install "goatnotify[django]"    # or [fastapi], [jinja], [celery], [dramatiq], [rq]
 ```
 
 Python 3.14 or newer is required; the Django integration needs Django 6.1 or newer.
@@ -80,11 +80,14 @@ Add a `DatabaseMessage` or a `WebhookMessage` to `messages()` and register `Data
 
 | Package | Contents |
 |---|---|
-| `goatnotify` | Facade re-exporting the core, with the `django`, `fastapi` and `jinja` extras |
+| `goatnotify` | Facade re-exporting the core, with the `django`, `fastapi`, `jinja`, `celery`, `dramatiq` and `rq` extras |
 | `goatnotify-core` | Notifications, channels, SMTP and HTTP transports, retries, queues, testing fakes |
 | `goatnotify-jinja` | `JinjaRenderer` |
 | `goatnotify-django` | Django email transport, template renderer, ORM store, Django Tasks queue |
 | `goatnotify-fastapi` | Lifespan and `NotifierDep` dependency |
+| `goatnotify-celery` | `CeleryQueue` and its worker task, for Django |
+| `goatnotify-dramatiq` | `DramatiqQueue` and its actor, for Django |
+| `goatnotify-rq` | `RQQueue` and its job function, for Django |
 
 ## Development
 

@@ -24,9 +24,9 @@ TASKS = {
 `enqueue()` needs a `TASKS` backend with a worker, such as
 [django-tasks-db](https://pypi.org/project/django-tasks-db/). Django itself only
 ships `ImmediateBackend`, which runs the task inline, and `DummyBackend`, which never runs it.
-With Celery, RQ or another task system, write a small queue instead (see
-[Other task systems](../queues.md#other-task-systems)) and return it from
-[your own notifier](#the-notifier).
+With Celery, Dramatiq or RQ, install the matching package and pass its queue to
+`default_notifier()` from [your own notifier](#the-notifier) (see
+[Celery, Dramatiq and RQ](../queues.md#celery-dramatiq-and-rq)).
 
 Then create the notification table:
 
