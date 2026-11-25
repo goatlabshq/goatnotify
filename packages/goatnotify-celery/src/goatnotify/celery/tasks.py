@@ -1,7 +1,10 @@
+from typing import Final
+
 from celery import shared_task
-from goatnotify.celery.queue import TASK_NAME
 from goatnotify.django.delivery import deliver_sync
 from goatnotify.django.serialization import Payload
+
+TASK_NAME: Final = "goatnotify.deliver"
 
 
 # Late acknowledgement redelivers a job whose worker died; the receipts make that harmless.

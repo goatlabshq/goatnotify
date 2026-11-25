@@ -14,7 +14,7 @@ from goatnotify_testapp.notifications import FLAKY, Alert, Welcome, WelcomeWithA
 
 from goatnotify import ConfigurationError, Notifiable, Notification
 from goatnotify.celery import CeleryQueue
-from goatnotify.celery.tasks import deliver_notification
+from goatnotify.celery.tasks import TASK_NAME, deliver_notification
 from goatnotify.core.queue import NotificationJob
 from goatnotify.django.notifier import get_notifier
 from goatnotify.django.serialization import dump_model, dump_notification
@@ -55,20 +55,37 @@ def test_the_worker_delivers_queued_notifications(app: Celery) -> None:
 
 def test_routing_options_reach_celery(monkeypatch: pytest.MonkeyPatch) -> None:
     app = Celery("goatnotify-routing", broker="memory://")
-    calls: list[tuple[str, dict[str, object]]] = []
+    calls: list[dict[str, object]] = []
 
-    def record(name: str, **options: object) -> None:
-        calls.append((name, options))
+    def record(**options: object) -> None:
+        calls.append(options)
 
-    monkeypatch.setattr(app, "send_task", record)
+    monkeypatch.setattr(app.tasks[TASK_NAME], "apply_async", record)
     member = Member.objects.create(email="ada@example.com")
     enqueue(CeleryQueue(app, queue="mail", priority=3), member, Welcome(plan="pro"))
-    [(name, options)] = calls
-    assert name == "goatnotify.deliver"
+    [options] = calls
     assert (options["queue"], options["priority"]) == ("mail", 3)
     arguments = options["args"]
-    assert isinstance(arguments, list)
+    assert isinstance(arguments, tuple)
     assert arguments[2] == options["task_id"]
+
+
+def test_eager_mode_delivers_inline_without_a_broker() -> None:
+    app = Celery("goatnotify-eager", broker="memory://")
+    app.conf.task_always_eager = True
+    published: list[object] = []
+
+    def remember(**message: object) -> None:
+        published.append(message)
+
+    after_task_publish.connect(remember)
+    task_postrun.connect(close_connections)
+    member = Member.objects.create(email="ada@example.com")
+    enqueue(CeleryQueue(app), member, Welcome(plan="pro"))
+    task_postrun.disconnect(close_connections)
+    after_task_publish.disconnect(remember)
+    assert published == []
+    assert [m.to for m in mail.outbox] == [["ada@example.com"]]
 
 
 def test_a_recipient_that_is_not_a_model_is_rejected_at_enqueue() -> None:

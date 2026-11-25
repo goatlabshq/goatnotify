@@ -83,7 +83,8 @@ def build_notifier() -> Notifier:
 `app.autodiscover_tasks()` registers the `goatnotify.deliver` task through the
 `goatnotify.celery` app. The task acknowledges late and is redelivered if its worker dies.
 Celery does not retry a failed task on its own; a task that is re-sent, by hand or by a
-monitoring tool, only delivers what failed.
+monitoring tool, only delivers what failed. With `task_always_eager`, as in a test suite, the
+task runs inline and nothing reaches the broker.
 
 ### Dramatiq
 
