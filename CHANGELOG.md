@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/goatlabshq/goatnotify/compare/v0.2.0...v0.3.0) (2026-11-25)
+
+
+### Features
+
+* add Celery, Dramatiq and RQ queues with delivery receipts ([#14](https://github.com/goatlabshq/goatnotify/issues/14)) ([1ca0063](https://github.com/goatlabshq/goatnotify/commit/1ca006367a501642c71ba4bdb5ac2093c6296138))
+
 ## [0.2.0](https://github.com/goatlabshq/goatnotify/compare/v0.1.0...v0.2.0) (2026-10-23)
 
 
