@@ -1,6 +1,6 @@
 [project]
 name = "goatnotify-celery"
-version = "0.2.0" # x-release-please-version
+version = "0.3.0" # x-release-please-version
 description = "Celery queue for GoatNotify, with delivery receipts that make retries idempotent."
 readme = "README.md"
 license = "MIT"
@@ -18,8 +18,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "goatnotify-core==0.2.0", # x-release-please-version
-    "goatnotify-django==0.2.0", # x-release-please-version
+    "goatnotify-core==0.3.0", # x-release-please-version
+    "goatnotify-django==0.3.0", # x-release-please-version
     "celery>=5.5",
     "django>=6.1",
 ]

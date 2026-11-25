@@ -1,6 +1,6 @@
 [project]
 name = "goatnotify-rq"
-version = "0.2.0" # x-release-please-version
+version = "0.3.0" # x-release-please-version
 description = "RQ queue for GoatNotify, with delivery receipts that make retries idempotent."
 readme = "README.md"
 license = "MIT"
@@ -17,8 +17,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "goatnotify-core==0.2.0", # x-release-please-version
-    "goatnotify-django==0.2.0", # x-release-please-version
+    "goatnotify-core==0.3.0", # x-release-please-version
+    "goatnotify-django==0.3.0", # x-release-please-version
     "redis>=5.0",
     "rq>=2.0",
 ]
